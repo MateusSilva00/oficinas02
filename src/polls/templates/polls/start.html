@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Inicializar Compra</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: #f5f6fa;
+            font-family: Arial, sans-serif;
+        }
+        .logo {
+            width: 180px;
+            margin-bottom: 40px;
+        }
+        .start-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #fff;
+            padding: 32px 24px;
+            border-radius: 16px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+        }
+        .start-form input[type="file"] {
+            margin-bottom: 18px;
+        }
+        .start-btn {
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 32px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .start-btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <img src="{% static 'imgs/logo.png' %}" alt="Logo" class="logo">
+    <form class="start-form" method="post" enctype="multipart/form-data" action="{% url 'polls:start' %}">
+        {% csrf_token %}
+        <input type="file" name="image1" accept="image/*" required>
+        <input type="file" name="image2" accept="image/*" required>
+        <button type="submit" class="start-btn">Inicializar compra</button>
+    </form>
+</body>
+</html>

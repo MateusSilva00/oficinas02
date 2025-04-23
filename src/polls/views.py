@@ -15,6 +15,10 @@ def index(request):
     }
     return render(request, 'polls/index.html', context)
 
+
+def start(request):
+    return render(request, 'polls/start.html')
+
 def product(request, product_id):
     latest_product = Product.objects.get(id=product_id)
     output = f"You're looking at product {latest_product.name} with price R${latest_product.price}."
