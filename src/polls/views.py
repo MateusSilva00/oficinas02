@@ -8,7 +8,7 @@ from polls.services.openai_api import generate_image_description
 
 def index(request):
     try:
-        latest_product_list = Product.objects.order_by('-id')[:5]
+        latest_product_list = Product.objects.all()
     except Product.DoesNotExist:
         raise Http404("No products available.")
 
