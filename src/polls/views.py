@@ -1,7 +1,9 @@
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import render
+from django.views.decorators.http import require_POST
 
 from polls.models import Order, Product
+from polls.services.openai_api import generate_image_description
 
 
 def index(request):
@@ -18,6 +20,25 @@ def index(request):
 
 def start(request):
     return render(request, 'polls/start.html')
+
+
+@require_POST
+def process_images(request):
+    image_top_view = request.FILES.get('image1')
+    image_front_view = request.FILES.get('image2')
+
+    if not image_top_view or not image_front_view:
+        return HttpResponse("Please upload both images.")
+    
+    response = generate_image_description(image_top_view, image_front_view)
+
+    if response:
+        return JsonResponse(
+            response,
+            status=200,
+        )
+    else:
+        return HttpResponse("Image processing failed.")
 
 def product(request, product_id):
     latest_product = Product.objects.get(id=product_id)

@@ -48,7 +48,7 @@
 </head>
 <body>
     <img src="{% static 'imgs/logo.png' %}" alt="Logo" class="logo">
-    <form class="start-form" method="post" enctype="multipart/form-data" action="{% url 'polls:start' %}">
+    <form class="start-form" method="post" enctype="multipart/form-data" action="{% url 'polls:process_images' %}">
         {% csrf_token %}
         <input type="file" name="image1" accept="image/*" required>
         <input type="file" name="image2" accept="image/*" required>
