@@ -67,6 +67,8 @@ def compare_items(input_item: str, db_items: Product) -> dict:
             best_score = score
             best_item = db_item.name
             price = db_item.price
+            _id = db_item.id
+            weight = db_item.avg_weight
 
     
     return {
@@ -76,7 +78,9 @@ def compare_items(input_item: str, db_items: Product) -> dict:
                 "score": best_score
             },
             "price": price,
-            "quantity": extract_quantity(input_item)
+            "quantity": extract_quantity(input_item),
+            "id": _id,
+            "weight": weight
         }
     }
 
