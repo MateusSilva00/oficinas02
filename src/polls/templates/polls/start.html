@@ -5,54 +5,90 @@
     <meta charset="UTF-8">
     <title>Inicializar Compra</title>
     <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background: #f5f6fa;
-            font-family: Arial, sans-serif;
-        }
         .logo {
-            width: 180px;
-            margin-bottom: 40px;
-        }
-        .start-form {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: #fff;
-            padding: 32px 24px;
-            border-radius: 16px;
-            box-shadow: 0 2px 16px rgba(0,0,0,0.08);
-        }
-        .start-form input[type="file"] {
-            margin-bottom: 18px;
+            width: 100%;
+            max-width: 320px;
+            height: auto;
+            transition: max-width 0.3s;
         }
         .start-btn {
             background: #007bff;
             color: #fff;
-            border: none;
             border-radius: 8px;
-            padding: 14px 32px;
-            font-size: 1.1rem;
+            padding: 16px 40px;
+            font-size: 1.2rem;
             font-weight: bold;
             cursor: pointer;
             transition: background 0.2s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            min-width: 250px;
+            margin-top: 24px;
         }
         .start-btn:hover {
             background: #0056b3;
         }
+        
+        .checkout-container {
+            background: #fff;
+            width: 100%;
+            height: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            padding: 24px 0;
+            margin: 0 auto;
+            max-width: 800px;
+            height: 100%;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .welcome-text {
+            font-size: 1.25rem;
+            color: #222;
+            margin-bottom: 0;
+            margin-top: 0;
+            font-weight: 500;
+        }
+
+        @media (max-width: 600px) {
+            .checkout-container {
+                padding: 16px 4vw 24px 4vw;
+                max-width: 98vw;
+                gap: 20px;
+            }
+            .logo {
+                max-width: 98vw;
+                width: 98vw;
+                min-width: 0;
+            }
+            .start-btn {
+                width: 100%;
+                padding: 14px;
+                font-size: 1.1rem;
+                min-width: unset;
+            }
+            .welcome-text {
+                font-size: 1.1rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <img src="{% static 'imgs/logo.png' %}" alt="Logo" class="logo">
-    <form class="start-form" method="post" enctype="multipart/form-data" action="{% url 'polls:process_images' %}">
-        {% csrf_token %}
-        <input type="file" name="image1" accept="image/*" required>
-        <input type="file" name="image2" accept="image/*" required>
+    <div class="checkout-container">
+        <div class="logo-container">
+            <img src="{% static 'imgs/logo.png' %}" alt="Logo" class="logo">
+        </div>
+        <p class="welcome-text">Bem-vindo! Para iniciar sua compra, clique no botão abaixo.</p>
         <button type="submit" class="start-btn">Inicializar compra</button>
-    </form>
+    </div>
 </body>
 </html>
