@@ -26,6 +26,11 @@ def start(request):
     return render(request, 'polls/start.html')
 
 
+def checkout(request):
+    """Renderiza a página de checkout para finalizar a compra."""
+    return render(request, 'polls/checkout.html')
+
+
 @require_POST
 def process_images(request) -> JsonResponse:
     """

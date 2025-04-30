@@ -1,0 +1,230 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background: #f5f6fa;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            margin: 0;
+        }
+        .logo {
+            width: 180px;
+            max-width: 80%;
+            margin-bottom: 30px;
+        }
+        .checkout-container {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+            padding: 24px;
+            width: 100%;
+            max-width: 800px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .summary-item {
+            background: #f1f2f6;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            color: #222;
+            min-width: 140px;
+            text-align: center;
+        }
+        .actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .action-btn {
+            background: #2ecc71;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .action-btn.secondary {
+            background: #3498db;
+        }
+        .action-btn:hover {
+            background: #27ae60;
+        }
+        .action-btn.secondary:hover {
+            background: #217dbb;
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                width: 140px;
+                margin-bottom: 20px;
+            }
+            .checkout-container {
+                padding: 16px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logo {
+                width: 120px;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+        .hidden {
+            display: none;
+        }
+        .upload-form {
+            margin: 16px 0;
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        }
+        .upload-form label {
+            display: block;
+            margin-bottom: 8px;
+        }
+        .upload-form input[type="file"] {
+            margin-bottom: 12px;
+        }
+        .upload-form button[type="submit"] {
+            margin-top: 8px;
+        }
+        .result-message {
+            margin-top: 12px;
+            color: #222;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <img src="{% static 'imgs/logo.png' %}" alt="Logo" class="logo">
+    <div class="checkout-container">
+        <h1>Finalizar Compra</h1>
+        <div class="summary">
+            <div class="summary-item">
+                Itens no carrinho: <span id="item-count">0</span>
+            </div>
+            <div class="summary-item">
+                Total: R$ <span id="total-price">0,00</span>
+            </div>
+        </div>
+        <div class="actions">
+            <button class="action-btn" onclick="showUploadForm()">Inserir produtos</button>
+            <button class="action-btn secondary" onclick="addFruit()">Inserir frutas</button>
+        </div>
+        <form id="upload-form" class="upload-form hidden" enctype="multipart/form-data">
+            <label>Imagem visão superior: <input type="file" name="image1" accept="image/*" required></label>
+            <label>Imagem visão frontal: <input type="file" name="image2" accept="image/*" required></label>
+            <button type="submit" class="action-btn">Enviar imagens</button>
+        </form>
+        <div id="result-message" class="result-message"></div>
+        <divl id="result-items" class="result-message">
+            <h2>Itens encontrados:</h2>
+            <ul id="item-list">
+                <!-- Os itens encontrados serão exibidos aqui -->
+            </ul>
+        </div>
+    </div>
+    <script>
+        let itemCount = 0;
+        let totalPrice = 0.00;
+
+
+
+        function showUploadForm() {
+            document.getElementById('upload-form').classList.remove('hidden');
+            document.getElementById('result-message').textContent = '';
+        }
+
+        document.getElementById('upload-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+
+            fetch("{% url 'polls:process_images' %}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.items && data.items.length > 0) {
+                    matched_items = data.matched_items;
+                } 
+                console.log("Matched items:", matched_items);
+                const itemList = document.getElementById('item-list');
+                itemList.innerHTML = ''; // Limpa a lista antes de adicionar novos itens
+                matched_items.forEach(itemObj => {
+                    const key = Object.keys(itemObj)[0];
+                    const item = itemObj[key];
+                    const li = document.createElement('li');
+
+                    const itemName = item.best_match.name;
+                    const itemPrice = item.price;
+                    const itemQuantity = item.quantity;
+
+
+                    li.textContent = `Nome: ${item.best_match.name} - Preço: R$ ${item.price} - Quantidade: ${item.quantity}`;
+                    itemList.appendChild(li);
+                    
+                    itemCount += itemQuantity;
+                    totalPrice += itemPrice * itemQuantity;
+                    
+                    document.getElementById('item-count').textContent = itemCount;
+                    document.getElementById('total-price').textContent = totalPrice.toFixed(2).replace('.', ',');
+                });
+
+                form.classList.add('hidden');
+            })
+            .catch((err) => {
+                document.getElementById('result-message').textContent = `Erro: ${err}`;
+                form.classList.add('hidden');
+            });
+        });
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

@@ -48,7 +48,6 @@
             max-width: 800px;
             height: 100%;
             align-items: center;
-            flex-direction: column;
         }
 
         .welcome-text {
@@ -88,7 +87,7 @@
             <img src="{% static 'imgs/logo.png' %}" alt="Logo" class="logo">
         </div>
         <p class="welcome-text">Bem-vindo! Para iniciar sua compra, clique no botão abaixo.</p>
-        <button type="submit" class="start-btn">Inicializar compra</button>
+        <a href="{% url 'polls:checkout' %}" class="start-btn" style="text-align:center;display:inline-block;text-decoration:none;">Inicializar compra</a>
     </div>
 </body>
 </html>
