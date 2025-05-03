@@ -15,7 +15,9 @@ dependencies = [
 ]
 
 [tool.poetry]
-packages = [{include = "checkai", from = "src"}]
+packages = [{include = "backend", from = "src"}]
+
+
 
 
 [build-system]
