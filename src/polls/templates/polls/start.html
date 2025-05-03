@@ -3,91 +3,126 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inicializar Compra</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        .logo {
-            width: 100%;
-            max-width: 320px;
-            height: auto;
-            transition: max-width 0.3s;
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: #f5f6fa;
+            font-family: 'Poppins', sans-serif;
+            color: #333;
         }
+
+        .checkout-container {
+            text-align: center;
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 780px;
+            animation: fadeIn 1s ease;
+        }
+
+        .logo {
+            width: 180px;
+            max-width: 100%;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .logo:hover {
+            transform: scale(1.1);
+        }
+
+        .welcome-text {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 24px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            border-right: 3px solid #3498db; /* Simula o cursor */
+            width: 0; /* Começa com o texto invisível */
+            animation: typing 4s steps(40) 1s forwards, blink 0.75s step-end infinite;
+        }
+
+        @keyframes typing {
+            0% {
+                width: 0;
+            }
+            100% {
+                width: 100%;
+            }
+        }
+
+        @keyframes blink {
+            50% {
+                border-color: transparent;
+            }
+        }
+
         .start-btn {
-            background: #007bff;
+            background: #3498db;
             color: #fff;
-            border-radius: 8px;
+            border: none;
+            border-radius: 12px;
             padding: 16px 40px;
             font-size: 1.2rem;
             font-weight: bold;
             cursor: pointer;
-            transition: background 0.2s;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: background 0.3s, transform 0.2s;
             min-width: 250px;
             margin-top: 24px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
+
         .start-btn:hover {
-            background: #0056b3;
-        }
-        
-        .checkout-container {
-            background: #fff;
-            width: 100%;
-            height: 100%;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 24px;
+            background: #2980b9;
+            transform: translateY(-3px);
         }
 
-        .logo-container {
-            display: flex;
-            justify-content: center;
-            width: 100%;
-            padding: 24px 0;
-            margin: 0 auto;
-            max-width: 800px;
-            height: 100%;
-            align-items: center;
-        }
-
-        .welcome-text {
-            font-size: 1.25rem;
-            color: #222;
-            margin-bottom: 0;
-            margin-top: 0;
-            font-weight: 500;
-        }
-
-        @media (max-width: 600px) {
-            .checkout-container {
-                padding: 16px 4vw 24px 4vw;
-                max-width: 98vw;
-                gap: 20px;
-            }
+        @media (max-width: 768px) {
             .logo {
-                max-width: 98vw;
-                width: 98vw;
-                min-width: 0;
+                width: 160px;
+            }
+            .checkout-container {
+                padding: 24px;
+                max-width: 90%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo {
+                width: 120px;
+            }
+            .welcome-text {
+                font-size: 1.2rem;
             }
             .start-btn {
                 width: 100%;
                 padding: 14px;
                 font-size: 1.1rem;
-                min-width: unset;
-            }
-            .welcome-text {
-                font-size: 1.1rem;
             }
         }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
     </style>
 </head>
 <body>
     <div class="checkout-container">
-        <div class="logo-container">
-            <img src="{% static 'imgs/logo.png' %}" alt="Logo" class="logo">
-        </div>
+        <img src="{% static 'imgs/logo.png' %}" alt="Logo" class="logo">
         <p class="welcome-text">Bem-vindo! Para iniciar sua compra, clique no botão abaixo.</p>
-        <a href="{% url 'polls:checkout' %}" class="start-btn" style="text-align:center;display:inline-block;text-decoration:none;">Inicializar compra</a>
+        <a href="{% url 'polls:checkout' %}" class="start-btn" style="text-align:center;display:inline-block;text-decoration:none;">Inicializar Compra</a>
     </div>
 </body>
 </html>
