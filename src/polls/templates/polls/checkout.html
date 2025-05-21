@@ -238,10 +238,11 @@
 
         <!-- Formulário de envio de imagens -->
         <form id="upload-form" class="upload-form" enctype="multipart/form-data">
-            <label>Imagem visão superior: <input type="file" name="image1" accept="image/*" required></label>
-            <label>Imagem visão frontal: <input type="file" name="image2" accept="image/*" required></label>
+            <!-- <label>Imagem visão superior: <input type="file" name="image1" accept="image/*" required></label>
+            <label>Imagem visão frontal: <input type="file" name="image2" accept="image/*" required></label> -->
             <button type="submit" class="action-btn action-btn-primary">Enviar imagens</button>
         </form>
+        <!-- <button type="submit" class="action-btn action-btn-primary">Enviar imagens</button> -->
 
         <!-- Resultados -->
         <div id="result-items" class="result-container">
@@ -276,7 +277,6 @@
 
             fetch("{% url 'polls:process_images' %}", {
                 method: 'POST',
-                body: formData,
                 headers: {
                     'X-CSRFToken': getCookie('csrftoken')
                 }

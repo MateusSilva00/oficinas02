@@ -4,7 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from polls.models import Order, Product
-from polls.services.openai_api import generate_image_description
+from polls.services.pycamera import image_capture
 from utils import extract_items_from_images, match_items_with_database
 
 
@@ -42,8 +42,9 @@ def process_images(request) -> JsonResponse:
     Returns:
         JsonResponse: Resposta JSON com os itens extraídos e suas correspondências
     """
-    image_top_view = request.FILES.get('image1')
-    image_front_view = request.FILES.get('image2')
+    
+    image_front_view = image_capture(frontal=True)
+    image_top_view = image_capture()
 
     if not image_top_view or not image_front_view:
         return HttpResponse("Please upload both images.")
