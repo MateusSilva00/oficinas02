@@ -6,7 +6,7 @@ authors = [
     {name = "MateusSilva00",email = "mateus.2020@alunos.utfpr.edu.br"}
 ]
 readme = "README.md"
-requires-python = ">=3.8,<4.0"
+requires-python = ">=3.9,<4.0"
 dependencies = [
     "django (>=5.2,<6.0)",
     "openai (>=1.75.0,<2.0.0)",
