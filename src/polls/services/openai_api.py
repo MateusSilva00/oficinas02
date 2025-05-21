@@ -3,16 +3,12 @@ from time import perf_counter
 from openai import OpenAI
 
 from logger import logger
-from utils import encode_image
 
 client = OpenAI(api_key='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')
 
-def generate_image_description(image_top_view, image_front_view):
+def generate_image_description(base64_top_view, base64_front_view):
     logger.debug("Starting image description generation.")
     start_time = perf_counter()
-
-    base64_top_view = encode_image(image_top_view)
-    base64_front_view = encode_image(image_front_view)
 
     response = client.responses.create(
     model="gpt-4.1-mini",

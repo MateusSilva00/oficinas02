@@ -5,6 +5,7 @@ from fuzzywuzzy import fuzz
 
 from logger import logger
 from polls.models import Product
+from polls.services.openai_api import generate_image_description
 
 EXAMPLE_IMAGE_PROCESS_RESPONSE = """
 - 2 caixas de leite Italac Semi 1%
@@ -46,10 +47,18 @@ def extract_items_from_images(image_top_view, image_front_view):
         list: Lista de itens extraídos das imagens
     """
     # Em produção, use a linha abaixo:
-    # raw_text = generate_image_description(image_top_view, image_front_view)
+    base64_top_view = encode_image(image_top_view)
+    base64_front_view = encode_image(image_front_view)
+    raw_dict = generate_image_description(base64_front_view=base64_front_view, base64_top_view=base64_top_view)
+    logger.debug(f"Raw response from OpenAI: {raw_dict}")
+    
+    raw_text = raw_dict["output"][0]["content"][0]["text"]
+    logger.debug(f"Raw text from OpenAI:\n{raw_text}")
     
     # Para desenvolvimento, usando texto de exemplo:
-    raw_text = EXAMPLE_IMAGE_PROCESS_RESPONSE
+    # raw_dict = EXAMPLE_IMAGE_PROCESS_RESPONSE
+    
+    
     return decode_items(raw_text)
 
 
