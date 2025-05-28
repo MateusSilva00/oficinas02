@@ -283,20 +283,17 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.items && data.items.length > 0) {
-                    matched_items = data.matched_items;
-                } 
+                console.log("Response data:", data);
+                matched_items = data.matched_items 
                 console.log("Matched items:", matched_items);
                 const itemList = document.getElementById('item-list');
                 itemList.innerHTML = ''; // Limpa a lista antes de adicionar novos itens
                 matched_items.forEach(itemObj => {
-                    const key = Object.keys(itemObj)[0];
-                    const item = itemObj[key];
                     const li = document.createElement('li');
 
-                    const itemName = item.best_match.name;
-                    const itemPrice = item.price;
-                    const itemQuantity = item.quantity;
+                    const itemName = itemObj.name;
+                    const itemPrice = itemObj.price;
+                    const itemQuantity = 1;
 
                     li.innerHTML = `${itemName} - Preço: R$ ${itemPrice} - Quantidade: ${itemQuantity}`;
                     itemList.appendChild(li);

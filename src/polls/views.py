@@ -49,9 +49,9 @@ def process_images(request) -> JsonResponse:
     if not image_top_view or not image_front_view:
         return HttpResponse("Please upload both images.")
     
-    items = extract_items_from_images(image_top_view, image_front_view)
+    matched_items = extract_items_from_images(image_top_view, image_front_view)
 
-    if not items:
+    if not matched_items:
         return JsonResponse(
             {
                 'items': [],
@@ -60,11 +60,9 @@ def process_images(request) -> JsonResponse:
             status=400,
         )
     
-    matched_items = match_items_with_database(items)
 
     return JsonResponse(
         {
-            'items': items,
             'matched_items': matched_items,
             'message': "Image processing successful.",
         },

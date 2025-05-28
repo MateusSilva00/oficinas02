@@ -1,6 +1,7 @@
 import base64
-import re
 import logging
+import re
+from typing import List
 
 from logger import logger
 from polls.models import Product
@@ -9,12 +10,9 @@ from polls.services.openai_api import generate_image_description
 logger = logging.getLogger(__name__)
 
 EXAMPLE_IMAGE_PROCESS_RESPONSE = """
-- 2 caixas de leite Italac Semi 1%
-- 1 garrafa de Coca-Cola
-- 1 pacote de pão Wickbold
-- 1 barra de chocolate Lacta Laka Oreo
-- 1 lata de cerveja Brahma
-- 1 lata de cerveja Skol
+- Quantidade: 2 - ProdutoId: 1
+- Quantidade: 1 - ProdutoId: 2
+- Quantidade: 3 - ProdutoId: 3
 """ 
 
 
@@ -29,12 +27,18 @@ def encode_image(image):
         return base64.b64encode(image.read()).decode('utf-8')
     
 
-def decode_items(text: str) -> list:
+def decode_items_in_productId(text: str) -> list:
     items = text.split("\n")
-    items = [item.strip() for item in items if item.strip()]
-    items = [item.replace("-", "").strip() for item in items]
+    products_ids = []
+    for item in items:
+        item = item.strip()
+        if item:
+            # Verifica se o item contém a palavra "ProdutoId" e extrai o ID
+            match = re.search(r'ProdutoId:\s*(\d+)', item)
+            if match:
+                products_ids.append(int(match.group(1)))
 
-    return items
+    return products_ids
 
 
 def get_products_from_database():
@@ -44,6 +48,7 @@ def get_products_from_database():
     products = Product.objects.all()
     context = ""
     for produto in products:
+        context += f"ID: {produto.id}\n"
         context += f"Produto: {produto.name}\n"
         context += f"Descrição: {produto.description}\n"
         context += f"Etiqueta: {produto.label}\n"
@@ -67,8 +72,11 @@ def extract_items_from_images(image_top_view, image_front_view):
     # Obter o contexto completo do banco de dados
     context = get_products_from_database()
 
+    print(f"Context for GPT:\n{context}")
+    logger.debug(f"Context for GPT:\n{context}")
+
     # Construir a string de entrada (input) para o GPT
-    input_text = f"{context}\nAqui estão as duas imagens:"
+    input_text = f"{context}\nCom base neste banco de dados me retorne somente o ID dos produtos identifcados. Caso nada seja encontrado, não me retorne nada. A sua resposta deve ser uma lista de itens, cada item em uma linha, no seguinte formato:\n{EXAMPLE_IMAGE_PROCESS_RESPONSE}\n\n" \
 
     # Enviar o contexto ao GPT, junto com as imagens codificadas
     raw_dict = generate_image_description(
@@ -78,37 +86,21 @@ def extract_items_from_images(image_top_view, image_front_view):
     )
     
     logger.debug(f"Raw response from OpenAI: {raw_dict}")
+    print(f"Raw response from OpenAI: {raw_dict}")
 
     raw_text = raw_dict["output"][0]["content"][0]["text"]
     logger.debug(f"Raw text from OpenAI:\n{raw_text}")
+    print(f"Raw text from OpenAI:\n{raw_text}")
 
     # Decodificar os itens extraídos a partir da resposta do GPT
-    items_list = decode_items(raw_text)
+    items_ids = decode_items_in_productId(raw_text)
+    print(f"Product ID's from GPT response: {items_ids}")
 
     # Usar a função match_items_with_database para comparar os itens extraídos com os produtos no banco
-    matched_items = match_items_with_database(items_list)
+    matched_items = match_items_with_database(items_ids)
 
     return matched_items
 
-
-
-def compare_items(raw_text, db_item: Product) -> bool:
-    """
-    Compara o texto extraído do GPT com os dados do banco de dados para verificar se o produto está correto.
-    
-    Args:
-        raw_text (str): Texto extraído do GPT com a descrição do produto.
-        db_item (Product): Produto do banco de dados.
-
-    Returns:
-        bool: Retorna True se o produto do banco de dados corresponder ao produto identificado pelo GPT.
-    """
-    # Garantir que o atributo 'name' existe e é uma string
-    if db_item.name and isinstance(db_item.name, str):
-        # Comparar o nome do produto com o texto extraído (ignorando maiúsculas/minúsculas)
-        if db_item.name.lower() in raw_text.lower():
-            return True
-    return False
 
 
 def extract_quantity(item: str) -> int:
@@ -126,7 +118,7 @@ def extract_quantity(item: str) -> int:
         return int(match.group(1))
     return 1 
 
-def match_items_with_database(items_list):
+def match_items_with_database(items_id_list: List[int]) -> List[dict]:
     """
     Compara os itens extraídos com os produtos no banco de dados e permite múltiplas correspondências.
 
@@ -136,18 +128,22 @@ def match_items_with_database(items_list):
     Returns:
         list: Lista de dicionários com os itens e suas correspondências (vários produtos podem ser encontrados por item).
     """
-    database_items = Product.objects.all()
     matched_items = []
+    for item_id in items_id_list:
+        database_item = Product.objects.filter(id=item_id).first()
+        
+        if database_item:
+            found_item = {
+                'id': database_item.id,
+                'name': database_item.name,
+                'description': database_item.description,
+                'label': database_item.label,
+                'price': database_item.price,
+                'avg_weight': database_item.avg_weight
+            }
+        
+            matched_items.append(found_item)
 
-    for input_item in items_list:
-        item_matches = []  # Lista para armazenar as correspondências de produtos para cada item
-        for db_item in database_items:
-            if compare_items(input_item, db_item):  # Passar um único produto para a função de comparação
-                item_matches.append(db_item)  # Adicionar o produto correspondente à lista de matches
-        if item_matches:
-            matched_items.append({
-                'item': input_item,  # Guardando o item extraído
-                'matches': item_matches  # Guardando todos os produtos correspondentes encontrados
-            })
-
+    print(f"Matched items: {matched_items}")
+    logger.debug(f"Matched items: {matched_items}")
     return matched_items
