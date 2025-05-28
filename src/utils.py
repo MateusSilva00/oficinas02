@@ -1,11 +1,12 @@
 import base64
 import re
-
-from fuzzywuzzy import fuzz
+import logging
 
 from logger import logger
 from polls.models import Product
 from polls.services.openai_api import generate_image_description
+
+logger = logging.getLogger(__name__)
 
 EXAMPLE_IMAGE_PROCESS_RESPONSE = """
 - 2 caixas de leite Italac Semi 1%
@@ -35,63 +36,80 @@ def decode_items(text: str) -> list:
 
     return items
 
+
+def get_products_from_database():
+    """
+    Busca todos os produtos no banco de dados e retorna um contexto detalhado para o GPT.
+    """
+    products = Product.objects.all()
+    context = ""
+    for produto in products:
+        context += f"Produto: {produto.name}\n"
+        context += f"Descrição: {produto.description}\n"
+        context += f"Etiqueta: {produto.label}\n"
+        context += f"Preço: {produto.price}\n"
+        context += f"Peso Médio: {produto.avg_weight}\n"
+        context += "\n"  
+    return context
+
+# Função principal para extrair os itens das imagens
 def extract_items_from_images(image_top_view, image_front_view):
     """
-    Extrai itens das imagens usando a API de visão computacional.
-    
-    Args:
-        image_top_view: Imagem com visão de cima do produto
-        image_front_view: Imagem com visão frontal do produto
-        
+    Extrai itens das imagens usando o contexto completo do banco de dados e a API do GPT.
+
     Returns:
         list: Lista de itens extraídos das imagens
     """
-    # Em produção, use a linha abaixo:
+    # Codificar as imagens em base64
     base64_top_view = encode_image(image_top_view)
     base64_front_view = encode_image(image_front_view)
-    raw_dict = generate_image_description(base64_front_view=base64_front_view, base64_top_view=base64_top_view)
-    logger.debug(f"Raw response from OpenAI: {raw_dict}")
+
+    # Obter o contexto completo do banco de dados
+    context = get_products_from_database()
+
+    # Construir a string de entrada (input) para o GPT
+    input_text = f"{context}\nAqui estão as duas imagens:"
+
+    # Enviar o contexto ao GPT, junto com as imagens codificadas
+    raw_dict = generate_image_description(
+        base64_front_view=base64_front_view, 
+        base64_top_view=base64_top_view, 
+        input_text=input_text
+    )
     
+    logger.debug(f"Raw response from OpenAI: {raw_dict}")
+
     raw_text = raw_dict["output"][0]["content"][0]["text"]
     logger.debug(f"Raw text from OpenAI:\n{raw_text}")
+
+    # Decodificar os itens extraídos a partir da resposta do GPT
+    items_list = decode_items(raw_text)
+
+    # Usar a função match_items_with_database para comparar os itens extraídos com os produtos no banco
+    matched_items = match_items_with_database(items_list)
+
+    return matched_items
+
+
+
+def compare_items(raw_text, db_item: Product) -> bool:
+    """
+    Compara o texto extraído do GPT com os dados do banco de dados para verificar se o produto está correto.
     
-    # Para desenvolvimento, usando texto de exemplo:
-    # raw_dict = EXAMPLE_IMAGE_PROCESS_RESPONSE
-    
-    
-    return decode_items(raw_text)
+    Args:
+        raw_text (str): Texto extraído do GPT com a descrição do produto.
+        db_item (Product): Produto do banco de dados.
 
+    Returns:
+        bool: Retorna True se o produto do banco de dados corresponder ao produto identificado pelo GPT.
+    """
+    # Garantir que o atributo 'name' existe e é uma string
+    if db_item.name and isinstance(db_item.name, str):
+        # Comparar o nome do produto com o texto extraído (ignorando maiúsculas/minúsculas)
+        if db_item.name.lower() in raw_text.lower():
+            return True
+    return False
 
-def compare_items(input_item: str, db_items: Product) -> dict:
-    best_score = 0
-    best_item = None
-    price = 0
-
-    logger.debug(f"Input item: {input_item}")
-    for db_item in db_items:
-        score = fuzz.ratio(input_item.lower(), db_item.name.lower())
-        logger.debug(f"Comparing {input_item} with {db_item.name}: {score}")
-
-        if score > best_score:
-            best_score = score
-            best_item = db_item.name
-            price = db_item.price
-            _id = db_item.id
-            weight = db_item.avg_weight
-
-    
-    return {
-        input_item: {
-            "best_match": {
-                "name": best_item,
-                "score": best_score
-            },
-            "price": price,
-            "quantity": extract_quantity(input_item),
-            "id": _id,
-            "weight": weight
-        }
-    }
 
 def extract_quantity(item: str) -> int:
     """
@@ -106,23 +124,30 @@ def extract_quantity(item: str) -> int:
     match = re.search(r'(\d+)', item)
     if match:
         return int(match.group(1))
-    return 1  # Retorna 1 se não encontrar quantidade
+    return 1 
 
 def match_items_with_database(items_list):
     """
-    Compara itens extraídos com produtos no banco de dados.
-    
+    Compara os itens extraídos com os produtos no banco de dados e permite múltiplas correspondências.
+
     Args:
-        items_list: Lista de itens para comparar
+        items_list: Lista de itens extraídos pela API do GPT.
         
     Returns:
-        list: Lista de dicionários com os itens e suas melhores correspondências
+        list: Lista de dicionários com os itens e suas correspondências (vários produtos podem ser encontrados por item).
     """
     database_items = Product.objects.all()
     matched_items = []
 
     for input_item in items_list:
-        best_match = compare_items(input_item, database_items)
-        matched_items.append(best_match)
-        
+        item_matches = []  # Lista para armazenar as correspondências de produtos para cada item
+        for db_item in database_items:
+            if compare_items(input_item, db_item):  # Passar um único produto para a função de comparação
+                item_matches.append(db_item)  # Adicionar o produto correspondente à lista de matches
+        if item_matches:
+            matched_items.append({
+                'item': input_item,  # Guardando o item extraído
+                'matches': item_matches  # Guardando todos os produtos correspondentes encontrados
+            })
+
     return matched_items

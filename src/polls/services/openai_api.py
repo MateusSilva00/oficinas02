@@ -4,9 +4,9 @@ from openai import OpenAI
 
 from logger import logger
 
-client = OpenAI(api_key='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')
+client = OpenAI(api_key='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')
 
-def generate_image_description(base64_top_view, base64_front_view):
+def generate_image_description(base64_top_view, base64_front_view, input_text):
     logger.debug("Starting image description generation.")
     start_time = perf_counter()
 
@@ -18,17 +18,7 @@ def generate_image_description(base64_top_view, base64_front_view):
             "content": [
                 { 
                   "type": "input_text",  
-                  "text": (
-                        "Observe cuidadosamente os produtos nas duas imagens seguintes "
-                        "e responda APENAS com os itens visualizados e suas quantidades, "
-                        "seguindo o formato:\n"
-                        "- X produto\n"
-                        "- Y produto\n"
-                        "Não inclua nenhum outro comentário ou explicação. Tenha em mente que as imagens são as mesmas\n"
-                        "mas vistas de ângulos diferentes. "
-                        "A imagem 1 é a visão de cima e a imagem 2 é a visão frontal. "
-                        "As imagens sempre conterão os mesmos produtos, portanto não duplique sua quantidade na respostas"
-                    ) 
+                  "text": input_text
                  },
                 {
                   "type": "input_image",
