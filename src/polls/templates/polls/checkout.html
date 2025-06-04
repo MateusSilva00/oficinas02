@@ -5,217 +5,453 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            background: #f5f6fa;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #333;
             margin: 0;
-            padding: 0;
+            padding: 20px;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
-            height: 100vh;
+            align-items: flex-start;
         }
 
         .checkout-container {
             background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            padding: 40px 50px;
-            max-width: 900px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            padding: 40px;
+            max-width: 1000px;
             width: 100%;
+            margin: 20px 0;
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @keyframes slideIn {
+            0% { transform: translateY(50px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
         }
 
         .logo {
-            width: 180px;
+            width: 200px;
             margin: 0 auto 30px;
             display: block;
-            transition: transform 0.3s ease-in-out;
+            transition: transform 0.3s ease;
         }
 
         .logo:hover {
-            transform: scale(1.1);
+            transform: scale(1.05);
         }
 
         h1 {
             text-align: center;
-            font-size: 2rem;
+            font-size: 2.5rem;
             color: #2c3e50;
             margin-bottom: 40px;
+            font-weight: 700;
         }
 
         .summary {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 20px;
+            margin-bottom: 30px;
         }
 
         .summary-item {
-            background: #ecf0f1;
-            border-radius: 8px;
-            padding: 16px;
-            font-size: 1.1rem;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            padding: 20px;
+            font-size: 1.2rem;
             color: #333;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            width: 48%;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
             text-align: center;
+            font-weight: 600;
+            transition: transform 0.3s ease;
+        }
+
+        .summary-item:hover {
+            transform: translateY(-3px);
+        }
+
+        .summary-item span {
+            color: #3498db;
+            font-weight: 700;
         }
 
         .actions {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 20px;
-            margin-top: 30px;
+            margin-bottom: 30px;
         }
 
         .action-btn {
             font-family: 'Poppins', sans-serif;
-            padding: 14px 30px;
+            padding: 18px 30px;
             border-radius: 12px;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
             cursor: pointer;
             border: none;
-            width: 48%;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .action-btn:hover::before {
+            left: 100%;
         }
 
         .action-btn-primary {
-            background-color: #3498db;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
             color: #fff;
         }
 
         .action-btn-secondary {
-            background-color: #2ecc71;
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
             color: #fff;
         }
 
         .action-btn:hover {
             transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
 
-        .action-btn-primary:hover {
-            background-color: #2980b9;
+        .upload-form {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            display: none;
+            margin-bottom: 30px;
+            border: 2px dashed #3498db;
         }
 
-        .action-btn-secondary:hover {
-            background-color: #27ae60;
+        .upload-form.show {
+            display: block;
+            animation: fadeInUp 0.5s ease;
         }
 
-        .result-container {
-            margin-top: 30px;
-            background: #f9fafb;
+        @keyframes fadeInUp {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .upload-form button[type="submit"] {
+            padding: 16px 40px;
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: #fff;
+            border: none;
             border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
 
-        .result-container h2 {
-            margin-bottom: 20px;
-            font-size: 1.5rem;
-            color: #333;
+        .upload-form button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
         }
 
-        .result-message {
-            margin-top: 15px;
+        .results-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .results-section.show {
+            display: block;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .results-title {
+            font-size: 1.8rem;
             color: #2c3e50;
-            font-size: 1rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .clear-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .clear-btn:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
         }
 
         .item-list {
             list-style: none;
             padding: 0;
-            margin-top: 20px;
+            margin: 0;
         }
 
-        .item-list li {
-            background: #ecf0f1;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 10px;
-            font-size: 1rem;
-            color: #333;
+        .item-entry {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #3498db;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .item-entry.new-item {
+            border-left-color: #2ecc71;
+            background: #f0fff4;
+            animation: highlightNew 2s ease;
+        }
+
+        @keyframes highlightNew {
+            0% { background: #d4edda; transform: scale(1.02); }
+            100% { background: #f0fff4; transform: scale(1); }
+        }
+
+        .item-entry:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .item-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        .item-list li span {
-            font-weight: bold;
-        }
-
-        .upload-form {
-            margin-top: 20px;
-            background: #f9fafb;
-            padding: 24px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            display: none; /* Formulário inicialmente oculto */
-        }
-
-        .upload-form label {
-            display: block;
             margin-bottom: 10px;
-            font-size: 1rem;
-            color: #333;
         }
 
-        .upload-form input[type="file"] {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 12px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-        }
-
-        .upload-form button[type="submit"] {
-            padding: 14px 30px;
+        .item-name {
             font-size: 1.2rem;
-            background-color: #3498db;
-            color: #fff;
-            border-radius: 12px;
-            cursor: pointer;
-            width: 100%;
-            transition: background-color 0.3s;
+            font-weight: 600;
+            color: #2c3e50;
         }
 
-        .upload-form button[type="submit"]:hover {
-            background-color: #2980b9;
+        .item-badge {
+            background: #3498db;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
         }
 
-        /* Responsividade */
+        .item-badge.new {
+            background: #2ecc71;
+        }
+
+        .item-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            font-size: 0.95rem;
+            color: #666;
+        }
+
+        .item-detail {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-weight: 500;
+            color: #7f8c8d;
+            font-size: 0.85rem;
+            margin-bottom: 2px;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .no-items {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+            padding: 40px;
+            font-size: 1.1rem;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #3498db;
+            font-size: 1.1rem;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #3498db;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsividade melhorada */
+        @media (max-width: 1024px) {
+            .checkout-container {
+                padding: 30px;
+                margin: 15px;
+            }
+            
+            .logo {
+                width: 160px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+        }
+
         @media (max-width: 768px) {
-            .summary-item {
-                width: 100%;
+            body {
+                padding: 10px;
             }
-
-            .action-btn {
-                width: 100%;
-                margin-top: 10px;
+            
+            .checkout-container {
+                padding: 25px;
+                margin: 10px;
             }
-
+            
+            .summary {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .actions {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
             .logo {
                 width: 140px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+                margin-bottom: 30px;
+            }
+            
+            .summary-item {
+                padding: 15px;
+                font-size: 1.1rem;
+            }
+            
+            .item-details {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .results-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
             }
         }
 
         @media (max-width: 480px) {
+            .checkout-container {
+                padding: 20px;
+            }
+            
             .logo {
                 width: 120px;
             }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .summary-item {
+                padding: 12px;
+                font-size: 1rem;
+            }
+            
+            .action-btn {
+                padding: 14px 20px;
+                font-size: 1rem;
+            }
+            
+            .results-title {
+                font-size: 1.5rem;
+            }
+            
+            .item-name {
+                font-size: 1.1rem;
+            }
+            
+            .item-entry {
+                padding: 15px;
+            }
+        }
 
+        @media (max-width: 360px) {
+            .checkout-container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.3rem;
+            }
+            
             .summary-item {
                 padding: 10px;
-                font-size: 1rem;
+                font-size: 0.9rem;
             }
         }
     </style>
 </head>
 <body>
-
     <div class="checkout-container">
         <img src="{% static 'imgs/logo.png' %}" alt="Logo" class="logo">
         <h1>Finalizar Compra</h1>
@@ -232,48 +468,118 @@
 
         <!-- Ações -->
         <div class="actions">
-            <button class="action-btn action-btn-primary" onclick="showUploadForm('produto')">Inserir produtos</button>
-            <button class="action-btn action-btn-secondary" onclick="showUploadForm('fruta')">Inserir frutas</button>
+            <button class="action-btn action-btn-primary" onclick="showUploadForm('produto')">
+                📦 Inserir Produtos
+            </button>
+            <button class="action-btn action-btn-secondary" onclick="showUploadForm('fruta')">
+                🍎 Inserir Frutas
+            </button>
         </div>
 
         <!-- Formulário de envio de imagens -->
         <form id="upload-form" class="upload-form" enctype="multipart/form-data">
-            <!-- <label>Imagem visão superior: <input type="file" name="image1" accept="image/*" required></label>
-            <label>Imagem visão frontal: <input type="file" name="image2" accept="image/*" required></label> -->
-            <button type="submit" class="action-btn action-btn-primary">Enviar imagens</button>
+            <div class="loading" id="loading">Processando imagens...</div>
+            <button type="submit" class="action-btn action-btn-primary">
+                📸 Enviar Imagens
+            </button>
         </form>
-        <!-- <button type="submit" class="action-btn action-btn-primary">Enviar imagens</button> -->
 
-        <!-- Resultados -->
-        <div id="result-items" class="result-container">
-            <h2>Itens encontrados:</h2>
+        <!-- Seção de Resultados -->
+        <div id="results-section" class="results-section">
+            <div class="results-header">
+                <h2 class="results-title">🛒 Itens no Carrinho</h2>
+                <button class="clear-btn" onclick="clearAllItems()">🗑️ Limpar Tudo</button>
+            </div>
+            
             <ul id="item-list" class="item-list">
-                <!-- Itens encontrados serão exibidos aqui -->
+                <li class="no-items">Nenhum item adicionado ainda</li>
             </ul>
         </div>
-        <div id="result-message" class="result-message"></div>
     </div>
 
     <script>
         let itemCount = 0;
         let totalPrice = 0.00;
+        let allItems = [];
+        let currentType = '';
 
         function showUploadForm(type) {
+            currentType = type;
             const form = document.getElementById('upload-form');
-            const resultMessage = document.getElementById('result-message');
-            form.style.display = 'block';
-            resultMessage.textContent = '';  // Esconde a mensagem quando o botão é pressionado
-            if (type === 'produto') {
-                resultMessage.textContent = 'Selecione as imagens dos produtos.';
-            } else if (type === 'fruta') {
-                resultMessage.textContent = 'Selecione as imagens das frutas.';
+            const resultsSection = document.getElementById('results-section');
+            
+            form.classList.add('show');
+            resultsSection.classList.add('show');
+        }
+
+        function clearAllItems() {
+            allItems = [];
+            itemCount = 0;
+            totalPrice = 0.00;
+            updateDisplay();
+            updateItemList();
+        }
+
+        function updateDisplay() {
+            document.getElementById('item-count').textContent = itemCount;
+            document.getElementById('total-price').textContent = totalPrice.toFixed(2).replace('.', ',');
+        }
+
+        function updateItemList() {
+            const itemList = document.getElementById('item-list');
+            
+            if (allItems.length === 0) {
+                itemList.innerHTML = '<li class="no-items">Nenhum item adicionado ainda</li>';
+                return;
             }
+            
+            itemList.innerHTML = '';
+            allItems.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = `item-entry ${item.isNew ? 'new-item' : ''}`;
+                
+                li.innerHTML = `
+                    <div class="item-header">
+                        <span class="item-name">${item.name}</span>
+                        <span class="item-badge ${item.isNew ? 'new' : ''}">${item.isNew ? 'Novo' : 'Item'}</span>
+                    </div>
+                    <div class="item-details">
+                        <div class="item-detail">
+                            <span class="detail-label">Preço Unitário</span>
+                            <span class="detail-value">R$ ${item.price}</span>
+                        </div>
+                        <div class="item-detail">
+                            <span class="detail-label">Quantidade</span>
+                            <span class="detail-value">${item.quantity}x</span>
+                        </div>
+                        <div class="item-detail">
+                            <span class="detail-label">Subtotal</span>
+                            <span class="detail-value">R$ ${(item.price * item.quantity)}</span>
+                        </div>
+                    </div>
+                `;
+                
+                itemList.appendChild(li);
+                
+                // Remove a classe 'new-item' após a animação
+                if (item.isNew) {
+                    setTimeout(() => {
+                        item.isNew = false;
+                        li.classList.remove('new-item');
+                    }, 2000);
+                }
+            });
         }
 
         document.getElementById('upload-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            const form = e.target;
-            const formData = new FormData(form);
+            
+            const loading = document.getElementById('loading');
+            const submitBtn = this.querySelector('button[type="submit"]');
+            
+            loading.classList.add('show');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processando...';
 
             fetch("{% url 'polls:process_images' %}", {
                 method: 'POST',
@@ -284,33 +590,35 @@
             .then(response => response.json())
             .then(data => {
                 console.log("Response data:", data);
-                matched_items = data.matched_items 
-                console.log("Matched items:", matched_items);
-                const itemList = document.getElementById('item-list');
-                itemList.innerHTML = ''; // Limpa a lista antes de adicionar novos itens
+                const matched_items = data.matched_items;
+                
+                // Adiciona novos itens à lista existente
                 matched_items.forEach(itemObj => {
-                    const li = document.createElement('li');
-
-                    const itemName = itemObj.name;
-                    const itemPrice = itemObj.price;
-                    const itemQuantity = itemObj.quantity;
-                    console.log(`Item: ${itemName}, Price: ${itemPrice}, Quantity: ${itemQuantity}`);
-
-                    li.innerHTML = `${itemName} - Preço: R$ ${itemPrice} - Quantidade: ${itemQuantity}`;
-                    itemList.appendChild(li);
-
-                    itemCount += itemQuantity;
-                    totalPrice += itemPrice * itemQuantity;
-
-                    document.getElementById('item-count').textContent = itemCount;
-                    document.getElementById('total-price').textContent = totalPrice.toFixed(2).replace('.', ',');
+                    const newItem = {
+                        name: itemObj.name,
+                        price: itemObj.price,
+                        quantity: itemObj.quantity,
+                        isNew: true
+                    };
+                    
+                    allItems.push(newItem);
+                    itemCount += itemObj.quantity;
+                    totalPrice += itemObj.price * itemObj.quantity;
                 });
-
-                form.style.display = 'none';  // Esconde o formulário após submissão
+                
+                updateDisplay();
+                updateItemList();
+                
+                this.classList.remove('show');
             })
             .catch((err) => {
-                document.getElementById('result-message').textContent = `Erro: ${err}`;
-                form.style.display = 'none';  // Esconde o formulário após erro
+                console.error('Erro:', err);
+                alert('Erro ao processar imagens. Tente novamente.');
+            })
+            .finally(() => {
+                loading.classList.remove('show');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '📸 Enviar Imagens';
             });
         });
 
@@ -329,6 +637,5 @@
             return cookieValue;
         }
     </script>
-
 </body>
 </html>
