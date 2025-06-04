@@ -1,5 +1,4 @@
 import base64
-import logging
 import re
 from typing import Dict, List, Optional
 
@@ -7,14 +6,11 @@ from logger import logger
 from polls.models import Product
 from polls.services.openai_api import generate_image_description
 
-logger = logging.getLogger(__name__)
-
 EXAMPLE_IMAGE_PROCESS_RESPONSE = """
 - [1] [2] 
 - [2] [1] 
 - [3] [3] 
 """
-
 
 def encode_image(image):
     if isinstance(image, str):
