@@ -293,7 +293,8 @@
 
                     const itemName = itemObj.name;
                     const itemPrice = itemObj.price;
-                    const itemQuantity = 1;
+                    const itemQuantity = itemObj.quantity;
+                    console.log(`Item: ${itemName}, Price: ${itemPrice}, Quantity: ${itemQuantity}`);
 
                     li.innerHTML = `${itemName} - Preço: R$ ${itemPrice} - Quantidade: ${itemQuantity}`;
                     itemList.appendChild(li);

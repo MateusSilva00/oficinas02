@@ -4,6 +4,7 @@ from logger import logger
 
 BASE_PATH = "orders/imgs"
 
+
 def image_capture(order_id: int = 10, frontal: bool = False) -> str:
     """
     Capture an image from the webcam and save it to a file.

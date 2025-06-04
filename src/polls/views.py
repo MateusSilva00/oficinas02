@@ -1,10 +1,11 @@
+import os
+
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from polls.models import Order, Product
-from polls.services.pycamera import image_capture
 from utils import extract_items_from_images, match_items_with_database
 
 
@@ -16,87 +17,94 @@ def index(request):
         raise Http404("No products available.")
 
     context = {
-        'latest_product_list': latest_product_list,
+        "latest_product_list": latest_product_list,
     }
-    return render(request, 'polls/index.html', context)
+    return render(request, "polls/index.html", context)
 
 
 def start(request):
     """Renderiza a página de início do processamento de compras."""
-    return render(request, 'polls/start.html')
+    return render(request, "polls/start.html")
 
 
 def checkout(request):
     """Renderiza a página de checkout para finalizar a compra."""
-    return render(request, 'polls/checkout.html')
+    return render(request, "polls/checkout.html")
 
 
 @require_POST
-def process_images(request) -> JsonResponse:
+def process_order(request) -> JsonResponse:
     """
     Processa imagens enviadas pelo usuário, extrai itens e compara com o banco de dados.
-    
+
     Args:
         request: Requisição HTTP com as imagens
-        
+
     Returns:
         JsonResponse: Resposta JSON com os itens extraídos e suas correspondências
     """
-    
-    image_front_view = image_capture(frontal=True)
-    image_top_view = image_capture()
 
-    if not image_top_view or not image_front_view:
-        return HttpResponse("Please upload both images.")
-    
-    matched_items = extract_items_from_images(image_top_view, image_front_view)
+    # Produção
+    # image_front_view = image_capture(frontal=True)
+    # image_top_view = image_capture()
+
+    # Desenvolvimento
+    # PATH TO IMAGE = src/polls/static/imgs/orders/IMG-20250503-WA0044.jpg
+    image_top_view = os.path.join(
+        os.path.dirname(__file__), "static/imgs/orders/IMG-20250503-WA0044.jpg"
+    )
+
+    if not image_top_view:
+        return HttpResponse("Please upload images.")
+
+    matched_items = extract_items_from_images(image_top_view)
 
     if not matched_items:
         return JsonResponse(
             {
-                'items': [],
-                'message': "No items found in the images.",
+                "items": [],
+                "message": "No items found in the images.",
             },
             status=400,
         )
-    
 
     return JsonResponse(
         {
-            'matched_items': matched_items,
-            'message': "Image processing successful.",
+            "matched_items": matched_items,
+            "message": "Image processing successful.",
         },
         status=200,
     )
-    
+
+
 @csrf_exempt
 @require_POST
 def compare_items_api(request):
     """
     Endpoint da API para comparar itens fornecidos com produtos do banco de dados.
-    
+
     Args:
         request: Requisição HTTP com a lista de itens para comparar
-        
+
     Returns:
         JsonResponse: Resposta JSON com os itens e suas correspondências
     """
-    inputs_items = request.POST.getlist('items[]') 
-    
+    inputs_items = request.POST.getlist("items[]")
+
     if not inputs_items:
         return JsonResponse(
             {
-                'error': "No items provided.",
+                "error": "No items provided.",
             },
             status=400,
         )
-    
+
     matched_items = match_items_with_database(inputs_items)
 
     return JsonResponse(
         {
-            'items': matched_items,
-            'message': "Item comparison successful.",
+            "items": matched_items,
+            "message": "Item comparison successful.",
         },
         status=200,
     )
