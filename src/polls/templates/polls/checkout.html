@@ -671,12 +671,9 @@
             loading.classList.add('show');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Processando...';
-<<<<<<< HEAD
-=======
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
 
->>>>>>> 4a0f5df (fix: csrf token)
             fetch("{% url 'polls:process_images' %}", {
                 method: 'POST',
                 headers: {
