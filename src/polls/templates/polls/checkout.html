@@ -543,6 +543,7 @@
 
         <!-- Formulário de envio de imagens -->
         <form id="upload-form" class="upload-form" enctype="multipart/form-data">
+            {% csrf_token %}
             <div class="loading" id="loading">Processando imagens...</div>
             <button type="submit" class="action-btn action-btn-primary">
                 📸 Enviar Imagens
@@ -670,10 +671,16 @@
             loading.classList.add('show');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Processando...';
+<<<<<<< HEAD
+=======
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+
+>>>>>>> 4a0f5df (fix: csrf token)
             fetch("{% url 'polls:process_images' %}", {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': getCookie('csrftoken')
+                    'X-CSRFToken': csrfToken,
                 }
             })
             .then(response => response.json())
