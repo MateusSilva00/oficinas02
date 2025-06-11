@@ -449,6 +449,71 @@
                 font-size: 0.9rem;
             }
         }
+
+        /* Estilos para a seção de QR Code */
+        #qr-code-section {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        #qr-code-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            display: inline-block;
+            margin: 20px auto;
+        }
+
+        #qr-code-container img {
+            display: block;
+            margin: 0 auto;
+        }
+
+        #finish-purchase-btn {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        #finish-purchase-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.4);
+        }
+
+        #finish-purchase-btn:active {
+            transform: translateY(0);
+        }
+
+        .payment-info {
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .payment-info p {
+            margin: 5px 0;
+        }
+
+        .payment-total {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
@@ -494,9 +559,38 @@
             <ul id="item-list" class="item-list">
                 <li class="no-items">Nenhum item adicionado ainda</li>
             </ul>
+
+            <!-- Botão de Finalizar Compra -->
+            <div id="finish-purchase-section" style="display: none; margin-top: 30px; text-align: center;">
+                <button id="finish-purchase-btn" class="action-btn action-btn-primary" style="width: 100%;">
+                    💳 Finalizar Compra
+                </button>
+            </div>
+        </div>
+
+        <!-- Seção do QR Code -->
+        <div id="qr-code-section" class="results-section" style="display: none;">
+            <div class="results-header">
+                <h2 class="results-title">💳 Pagamento</h2>
+            </div>
+            <div style="text-align: center; padding: 20px;">
+                <div id="qr-code-container" style="margin: 20px auto; max-width: 300px;">
+                    <!-- QR Code será inserido aqui -->
+                </div>
+                <div class="payment-total">
+                    Total a pagar: R$ <span id="payment-total-amount">0,00</span>
+                </div>
+                <div class="payment-info">
+                    <p>Escaneie o QR Code acima para realizar o pagamento</p>
+                    <p>Após o pagamento, seu pedido será processado automaticamente</p>
+                </div>
+            </div>
         </div>
     </div>
-
+    <!-- QRCode.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- pix-qrcode (payload Pix) -->
+    <script src="https://cdn.jsdelivr.net/npm/pix-qrcode@1.0.0/lib/index.umd.js"></script>
     <script>
         let itemCount = 0;
         let totalPrice = 0.00;
@@ -507,10 +601,10 @@
             currentType = type;
             const form = document.getElementById('upload-form');
             const resultsSection = document.getElementById('results-section');
-            
             form.classList.add('show');
             resultsSection.classList.add('show');
         }
+        window.showUploadForm = showUploadForm;
 
         function clearAllItems() {
             allItems = [];
@@ -519,6 +613,7 @@
             updateDisplay();
             updateItemList();
         }
+        window.clearAllItems = clearAllItems;
 
         function updateDisplay() {
             document.getElementById('item-count').textContent = itemCount;
@@ -527,17 +622,16 @@
 
         function updateItemList() {
             const itemList = document.getElementById('item-list');
-            
+            const finishPurchaseSection = document.getElementById('finish-purchase-section');
             if (allItems.length === 0) {
                 itemList.innerHTML = '<li class="no-items">Nenhum item adicionado ainda</li>';
+                finishPurchaseSection.style.display = 'none';
                 return;
             }
-            
             itemList.innerHTML = '';
             allItems.forEach((item, index) => {
                 const li = document.createElement('li');
                 li.className = `item-entry ${item.isNew ? 'new-item' : ''}`;
-                
                 li.innerHTML = `
                     <div class="item-header">
                         <span class="item-name">${item.name}</span>
@@ -558,10 +652,7 @@
                         </div>
                     </div>
                 `;
-                
                 itemList.appendChild(li);
-                
-                // Remove a classe 'new-item' após a animação
                 if (item.isNew) {
                     setTimeout(() => {
                         item.isNew = false;
@@ -569,18 +660,16 @@
                     }, 2000);
                 }
             });
+            finishPurchaseSection.style.display = 'block';
         }
 
         document.getElementById('upload-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            
             const loading = document.getElementById('loading');
             const submitBtn = this.querySelector('button[type="submit"]');
-            
             loading.classList.add('show');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Processando...';
-
             fetch("{% url 'polls:process_images' %}", {
                 method: 'POST',
                 headers: {
@@ -591,8 +680,6 @@
             .then(data => {
                 console.log("Response data:", data);
                 const matched_items = data.matched_items;
-                
-                // Adiciona novos itens à lista existente
                 matched_items.forEach(itemObj => {
                     const newItem = {
                         name: itemObj.name,
@@ -600,15 +687,12 @@
                         quantity: itemObj.quantity,
                         isNew: true
                     };
-                    
                     allItems.push(newItem);
                     itemCount += itemObj.quantity;
                     totalPrice += itemObj.price * itemObj.quantity;
                 });
-                
                 updateDisplay();
                 updateItemList();
-                
                 this.classList.remove('show');
             })
             .catch((err) => {
@@ -636,6 +720,44 @@
             }
             return cookieValue;
         }
+
+        document.getElementById('finish-purchase-btn').addEventListener('click', function() {
+            const qrCodeSection = document.getElementById('qr-code-section');
+            const qrCodeContainer = document.getElementById('qr-code-container');
+            qrCodeSection.style.display = 'block';
+            qrCodeContainer.innerHTML = '';
+
+            fetch('/polls/gerar_qr_pix/?valor=' + totalPrice.toFixed(2))
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error('Erro ao acessar o endpoint. Verifique o backend.');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Payload recebido:', data);
+                    const payload = data.payload;
+                    if (!payload) {
+                        throw new Error('Payload vazio recebido do backend.');
+                    }
+                    new QRCode(qrCodeContainer, {
+                        text: payload,
+                        width: 256,
+                        height: 256,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.L
+                    });
+                })
+                .catch(err => {
+                    console.error('Erro:', err);
+                    alert('Erro ao gerar QR Code. Tente novamente mais tarde.');
+                });
+
+            document.getElementById('payment-total-amount').textContent = totalPrice.toFixed(2).replace('.', ',');
+            qrCodeSection.scrollIntoView({ behavior: 'smooth' });
+        });
     </script>
 </body>
 </html>
