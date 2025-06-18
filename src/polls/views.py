@@ -6,7 +6,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from polls.models import Order, Product
-from utils import extract_items_from_images, match_items_with_database, gerar_payload_pix
+from polls.services.pycamera import image_capture
+from utils import (extract_items_from_images, gerar_payload_pix,
+                   match_items_with_database)
 
 
 def index(request):
@@ -46,13 +48,13 @@ def process_order(request) -> JsonResponse:
 
     # Produção
     # image_front_view = image_capture(frontal=True)
-    # image_top_view = image_capture()
+    image_top_view = image_capture()
 
     # Desenvolvimento
     # PATH TO IMAGE = src/polls/static/imgs/orders/IMG-20250503-WA0044.jpg
-    image_top_view = os.path.join(
-        os.path.dirname(__file__), "static/imgs/orders/IMG-20250503-WA0044.jpg"
-    )
+    # image_top_view = os.path.join(
+    #     os.path.dirname(__file__), "static/imgs/orders/IMG-20250503-WA0044.jpg"
+    # )
 
     if not image_top_view:
         return HttpResponse("Please upload images.")
@@ -165,6 +167,10 @@ def gerar_qr_pix(request):
             resultado &= 0xFFFF
         return f"{resultado:04X}"
 
+    # Adicionar o CRC16 ao payload
+    payload += calcular_crc16(payload)
+    
+    return JsonResponse({'payload': payload})
     # Adicionar o CRC16 ao payload
     payload += calcular_crc16(payload)
     
