@@ -147,6 +147,7 @@ def match_items_with_database(items_object: Dict[int, int]) -> List[dict]:
                 "price": database_item.price,
                 "avg_weight": database_item.avg_weight,
                 "quantity": quantity,
+                "is_fruit": database_item.is_fruit,
             }
 
             matched_items.append(found_item)

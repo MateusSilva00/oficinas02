@@ -554,7 +554,7 @@
         <div id="results-section" class="results-section">
             <div class="results-header">
                 <h2 class="results-title">🛒 Itens no Carrinho</h2>
-                <button class="clear-btn" onclick="clearAllItems()">🗑️ Limpar Tudo</button>
+                <button class="clear-btn" onclick="clearAllItems()">Limpar Tudo</button>
             </div>
             
             <ul id="item-list" class="item-list">
@@ -602,6 +602,14 @@
             currentType = type;
             const form = document.getElementById('upload-form');
             const resultsSection = document.getElementById('results-section');
+            
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (type === 'fruta') {
+                submitBtn.innerHTML = 'Processar Frutas';
+            } else {
+                submitBtn.innerHTML = 'Processar Produtos';
+            }
+            
             form.classList.add('show');
             resultsSection.classList.add('show');
         }
@@ -668,13 +676,19 @@
             e.preventDefault();
             const loading = document.getElementById('loading');
             const submitBtn = this.querySelector('button[type="submit"]');
+            
             loading.classList.add('show');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Processando...';
+            
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
+            // Determinar qual endpoint usar baseado no tipo atual
+            const endpoint = currentType === 'fruta' 
+                ? "{% url 'polls:process_fruits' %}" 
+                : "{% url 'polls:process_images' %}";
 
-            fetch("{% url 'polls:process_images' %}", {
+            fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': csrfToken,
@@ -683,6 +697,13 @@
             .then(response => response.json())
             .then(data => {
                 console.log("Response data:", data);
+                
+                // Verificar se há erro na resposta
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                
                 const matched_items = data.matched_items;
                 matched_items.forEach(itemObj => {
                     const newItem = {
@@ -706,7 +727,12 @@
             .finally(() => {
                 loading.classList.remove('show');
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '📸 Enviar Imagens';
+                
+                if (currentType === 'fruta') {
+                    submitBtn.innerHTML = '🍎 Processar Frutas';
+                } else {
+                    submitBtn.innerHTML = '📸 Processar Produtos';
+                }
             });
         });
 

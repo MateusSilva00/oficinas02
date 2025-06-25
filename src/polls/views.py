@@ -7,8 +7,11 @@ from django.views.decorators.http import require_POST
 
 from polls.models import Order, Product
 from polls.services.pycamera import image_capture
-from utils import (extract_items_from_images, gerar_payload_pix,
-                   match_items_with_database)
+from utils import (
+    extract_items_from_images,
+    gerar_payload_pix,
+    match_items_with_database,
+)
 
 
 def index(request):
@@ -74,6 +77,79 @@ def process_order(request) -> JsonResponse:
         {
             "matched_items": matched_items,
             "message": "Image processing successful.",
+        },
+        status=200,
+    )
+
+@require_POST
+def process_fruit_order(request) -> JsonResponse:
+    """
+    Processa imagens de frutas, validando que apenas um tipo de fruta foi detectado.
+
+    Args:
+        request: Requisição HTTP para processamento de frutas
+
+    Returns:
+        JsonResponse: Resposta JSON com os itens de fruta ou erro se múltiplos tipos
+    """
+    # Produção
+    # image_top_view = image_capture()
+
+    # Desenvolvimento
+    # PATH TO IMAGE = src/polls/static/imgs/orders/IMG-20250503-WA0044.jpg
+    image_top_view = os.path.join(
+        os.path.dirname(__file__), "static/imgs/orders/fruits_order_type_correct_apple.jpeg"
+    )
+
+
+    if not image_top_view:
+        return JsonResponse(
+            {
+                "error": "Por favor, tire uma foto das frutas.",
+            },
+            status=400,
+        )
+
+    matched_items = extract_items_from_images(image_top_view)
+
+    if not matched_items:
+        return JsonResponse(
+            {
+                "error": "Nenhuma fruta foi encontrada na imagem.",
+            },
+            status=400,
+        )
+
+    fruit_items = []
+    for item in matched_items:
+        if item.get("is_fruit", False):
+            fruit_items.append(item)
+
+    
+    if not fruit_items:
+        return JsonResponse(
+            {
+                "error": "Nenhuma fruta foi detectada na imagem. Por favor, use o botão 'Inserir Produtos' para outros itens.",
+            },
+            status=400,
+        )
+
+    # Verificar se há apenas um tipo de fruta
+    unique_fruit_names = set(item['name'] for item in fruit_items)
+    
+    if len(unique_fruit_names) > 1:
+        fruit_list = ", ".join(unique_fruit_names)
+        return JsonResponse(
+            {
+                "error": f"Detectados múltiplos tipos de frutas: {fruit_list}. Por favor, coloque apenas um tipo de fruta por vez.",
+            },
+            status=400,
+        )
+
+    return JsonResponse(
+        {
+            "matched_items": fruit_items,
+            "message": "Processamento de frutas realizado com sucesso.",
         },
         status=200,
     )
@@ -171,7 +247,4 @@ def gerar_qr_pix(request):
     payload += calcular_crc16(payload)
     
     return JsonResponse({'payload': payload})
-    # Adicionar o CRC16 ao payload
-    payload += calcular_crc16(payload)
-    
-    return JsonResponse({'payload': payload})
+
