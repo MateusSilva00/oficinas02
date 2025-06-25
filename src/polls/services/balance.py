@@ -1,68 +1,53 @@
-import os
-import sys
-from typing import List
+import time
 
-import django
+import RPi.GPIO as GPIO
+from hx711 import HX711
 
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(project_root)
+from logger import logger
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')  
-django.setup()
+OFFSET = 295700
+DOUT_PIN = 5
+SCK_PIN = 6
 
-from polls.models import Product
 
-ERROR_TOLERANCE = 0.03
-
-def is_expected_weight(balance_given_weight: int, product_list: List[int]) -> bool:
+def read_balance() -> float:
     """
-    A função recebe o peso exibida da balança e uma lista de produtos.
-    Em seguida, calcula o peso esperado com base no peso dos produtos.
-    Se o peso esperado estiver dentro da tolerância do peso dado, retorna True.
-    Caso contrário, retorna False.
-
-    # Hipotese
-    # A balança exibe o peso total dos produtos, mas a câmera TALVEZ não consiga identificar todos os produtos.
-    # Portanto, o peso exibido na balança pode ser MAIOR do que o peso calculado.
-    # A tolerância é de 3% do peso esperado.
-    # Se o peso exubido na balança for muito maior do que o calculado, é possível que a câmera não tenha identificado todos os produtos.
-    # Exemplo:
-    # - Peso esperado: 1000g
-    # - Peso exibido na balança: 1030g
-    # - Tolerância: 3% de 1000g = 30g
-    # - Peso exibido na balança está dentro da tolerância, então a câmera pode ter identificado todos os produtos.
-    
-    # - Peso exibido na balança: 1100g
-    # - Tolerância: 3% de 1000g = 30g
-    # - Peso exibido na balança está fora da tolerância, então a câmera não identificou todos os produtos.    
-    
-    Não há possibilidade de o peso exibido na balança ser menor do que o peso esperado, pois a balança exibe o peso total dos produtos.
+    Performs 10 measurements and returns the average value, using a fixed offset.
     """
-    
-    products = Product.objects.filter(id__in=product_list)
-    expected_weight = sum(int(product.avg_weight) for product in products)  # Use avg_weight
-    tolerance = expected_weight * ERROR_TOLERANCE
+    GPIO.setmode(GPIO.BCM)
+    try:
+        hx = HX711(dout_pin=DOUT_PIN, pd_sck_pin=SCK_PIN)
+        hx.reset()
 
-    # Verifica se o peso exibido na balança está dentro da tolerância
-    if balance_given_weight <= expected_weight + tolerance:
-        return True
+        hx.set_offset(OFFSET)
+        hx.set_scale(1.0)
+        logger.debug(f"Fixed offset used: {OFFSET}")
 
-    elif balance_given_weight > expected_weight + tolerance:
-        # sys.exc_info(
-        #     "Peso exibido na balança é MUITO maior do que o peso esperado. A câmera pode não ter identificado todos os produtos."
-        # )
-        return False
+        measurements = []
+        for i in range(10):
+            measured_weight = hx.get_weight_mean(10)
+            if measured_weight:
+                logger.debug(f"Measurement {i + 1}: {measured_weight:.2f}g")
+                measurements.append(measured_weight)
+            else:
+                logger.error(f"Error in measurement {i + 1}!")
+            time.sleep(1)
 
-    elif balance_given_weight < expected_weight:
-        sys.exc_info(
-            "Peso exibido na balança é menor do que o peso esperado. Verifique se a balança está funcionando corretamente."
-        )
-    
+        if measurements:
+            average = sum(measurements) / len(measurements)
+            logger.info(f"Average of measurements: {average:.2f}g")
+            return average
+        else:
+            logger.error("No valid measurements taken!")
+            return 0.0
 
+    except Exception as e:
+        logger.error(f"Error: {e}")
+        return 0.0
+
+    finally:
+        GPIO.cleanup()
 
 
 if __name__ == "__main__":
-    products = [1, 2, 3]  # Coca Cola, Leite, Chocolate branco oreo (corrigido typo)
-    balance_given_weight = 3200
-
-    expected_weight = is_expected_weight(balance_given_weight, products)
+    pass
