@@ -908,6 +908,7 @@
             submitBtn.disabled = true;
             submitBtn.textContent = 'Processando...';
             
+            // Obter o token CSRF corretamente
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
             // Determinar qual endpoint usar baseado no tipo atual
@@ -919,7 +920,10 @@
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': csrfToken,
-                }
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin' // Importante para enviar cookies, incluindo o token CSRF
             })
             .then(response => response.json())
             .then(data => {
@@ -963,21 +967,6 @@
             });
         });
 
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-
         document.getElementById('finish-purchase-btn').addEventListener('click', function() {
             const qrCodeSection = document.getElementById('qr-code-section');
             const qrCodeContainer = document.getElementById('qr-code-container');
@@ -1013,8 +1002,21 @@
             document.getElementById('payment-total-amount').textContent = totalPrice.toFixed(2).replace('.', ',');
             qrCodeSection.scrollIntoView({ behavior: 'smooth' });
         });
+        
+        // Função auxiliar para CSRF
+        function getCSRFToken() {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let cookie of cookies) {
+                    const [name, value] = cookie.trim().split('=');
+                    if (name === 'csrftoken') {
+                        return decodeURIComponent(value);
+                    }
+                }
+            }
+            return cookieValue;
+        }
     </script>
-</body>
-</html>
 </body>
 </html>
