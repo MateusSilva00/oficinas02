@@ -26,6 +26,15 @@ class OrderProcessingStrategy(ABC):
 class ProductProcessingStrategy(OrderProcessingStrategy):
     def validate_items(self, items: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Valida produtos gerais - aceita qualquer item."""
+        fruit_items = [item for item in items if item.get("is_fruit", False)]
+
+        if fruit_items:
+            return {
+                "valid": False,
+                "message": "Frutas detectadas. Por favor, use a estratégia de processamento de frutas.",
+                "filtered_items": [],
+            }
+
         return {"valid": True, "message": "", "filtered_items": items}
 
     def get_success_message(self) -> str:
@@ -136,7 +145,7 @@ class OrderProcessor:
 
         return os.path.join(
             os.path.dirname(__file__),
-            "../static/imgs/orders/fruits_order_type_correct_apple.jpeg",
+            "../static/imgs/orders/fruits_order_type_wrong.jpeg",
         )
 
     def _get_total_weight(self, items: List[Dict[str, Any]]) -> float:

@@ -514,6 +514,165 @@
             color: #2c3e50;
             margin: 20px 0;
         }
+
+        /* Sistema de notificações */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 350px;
+            width: 90%;
+        }
+
+        .notification {
+            background: #fff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            border-left: 4px solid #3498db;
+            animation: notificationFadeIn 0.3s ease;
+        }
+
+        .notification.error {
+            border-left-color: #e74c3c;
+        }
+
+        .notification.success {
+            border-left-color: #2ecc71;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+
+        .notification-message {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .notification-close {
+            float: right;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            line-height: 1;
+            cursor: pointer;
+            color: #95a5a6;
+        }
+
+        @keyframes notificationFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modal de erro centralizado */
+        .error-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        .error-modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .error-modal {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 450px;
+            padding: 25px;
+            position: relative;
+            animation: modalScale 0.3s forwards;
+            transform: scale(0.8);
+        }
+
+        @keyframes modalScale {
+            to { transform: scale(1); }
+        }
+
+        .error-modal-title {
+            color: #e74c3c;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .error-modal-message {
+            color: #2c3e50;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .error-modal-close {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: block;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 200px;
+        }
+
+        .error-modal-close:hover {
+            background: #c0392b;
+        }
+
+        /* Responsividade para notificações */
+        @media (max-width: 480px) {
+            .notification-container {
+                max-width: 300px;
+            }
+            
+            .notification {
+                padding: 12px;
+            }
+            
+            .notification-title {
+                font-size: 0.95rem;
+            }
+            
+            .notification-message {
+                font-size: 0.85rem;
+            }
+
+            .error-modal {
+                width: 95%;
+                padding: 20px;
+            }
+
+            .error-modal-title {
+                font-size: 1.1rem;
+            }
+
+            .error-modal-message {
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -546,7 +705,7 @@
             {% csrf_token %}
             <div class="loading" id="loading">Processando imagens...</div>
             <button type="submit" class="action-btn action-btn-primary">
-                📸 Enviar Imagens
+                Enviar Imagens
             </button>
         </form>
 
@@ -564,7 +723,7 @@
             <!-- Botão de Finalizar Compra -->
             <div id="finish-purchase-section" style="display: none; margin-top: 30px; text-align: center;">
                 <button id="finish-purchase-btn" class="action-btn action-btn-primary" style="width: 100%;">
-                    💳 Finalizar Compra
+                    Finalizar Compra
                 </button>
             </div>
         </div>
@@ -588,6 +747,19 @@
             </div>
         </div>
     </div>
+    
+    <!-- Container de notificações -->
+    <div class="notification-container" id="notification-container"></div>
+    
+    <!-- Modal de erro -->
+    <div class="error-modal-overlay" id="error-modal-overlay">
+        <div class="error-modal">
+            <div class="error-modal-title" id="error-modal-title">Erro</div>
+            <div class="error-modal-message" id="error-modal-message"></div>
+            <button class="error-modal-close" onclick="closeErrorModal()">Entendi</button>
+        </div>
+    </div>
+    
     <!-- QRCode.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- pix-qrcode (payload Pix) -->
@@ -672,6 +844,61 @@
             finishPurchaseSection.style.display = 'block';
         }
 
+        // Sistema de notificações
+        function showNotification(message, type = 'info', title = '') {
+            // Para erros, usar o modal centralizado
+            if (type === 'error') {
+                showErrorModal(message, title || 'Erro');
+                return;
+            }
+            
+            const container = document.getElementById('notification-container');
+            
+            // Criar elemento de notificação
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            // Definir títulos padrão baseados no tipo
+            if (!title) {
+                if (type === 'success') title = 'Sucesso';
+                else title = 'Informação';
+            }
+            
+            // Adicionar conteúdo HTML
+            notification.innerHTML = `
+                <button class="notification-close" onclick="this.parentElement.remove()">&times;</button>
+                <div class="notification-title">${title}</div>
+                <div class="notification-message">${message}</div>
+            `;
+            
+            // Adicionar ao container
+            container.appendChild(notification);
+            
+            // Remover após 5 segundos
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.parentElement.removeChild(notification);
+                }
+            }, 5000);
+        }
+
+        // Modal de erro centralizado
+        function showErrorModal(message, title = 'Erro') {
+            document.getElementById('error-modal-title').textContent = title;
+            document.getElementById('error-modal-message').textContent = message;
+            document.getElementById('error-modal-overlay').classList.add('show');
+            
+            // Desabilitar rolagem do fundo
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeErrorModal() {
+            document.getElementById('error-modal-overlay').classList.remove('show');
+            
+            // Restaurar rolagem do fundo
+            document.body.style.overflow = '';
+        }
+
         document.getElementById('upload-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const loading = document.getElementById('loading');
@@ -700,7 +927,7 @@
                 
                 // Verificar se há erro na resposta
                 if (data.error) {
-                    alert(data.error);
+                    showNotification(data.error, 'error');
                     return;
                 }
                 
@@ -722,7 +949,7 @@
             })
             .catch((err) => {
                 console.error('Erro:', err);
-                alert('Erro ao processar imagens. Tente novamente.');
+                showNotification('Erro ao processar imagens. Tente novamente.', 'error');
             })
             .finally(() => {
                 loading.classList.remove('show');
@@ -782,7 +1009,7 @@
                 })
                 .catch(err => {
                     console.error('Erro:', err);
-                    alert('Erro ao gerar QR Code. Tente novamente mais tarde.');
+                    showNotification('Erro ao gerar QR Code. Tente novamente mais tarde.', 'error');
                 });
 
             document.getElementById('payment-total-amount').textContent = totalPrice.toFixed(2).replace('.', ',');
