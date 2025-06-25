@@ -155,38 +155,6 @@ def process_fruit_order(request) -> JsonResponse:
     )
 
 
-@csrf_exempt
-@require_POST
-def compare_items_api(request):
-    """
-    Endpoint da API para comparar itens fornecidos com produtos do banco de dados.
-
-    Args:
-        request: Requisição HTTP com a lista de itens para comparar
-
-    Returns:
-        JsonResponse: Resposta JSON com os itens e suas correspondências
-    """
-    inputs_items = request.POST.getlist("items[]")
-
-    if not inputs_items:
-        return JsonResponse(
-            {
-                "error": "No items provided.",
-            },
-            status=400,
-        )
-
-    matched_items = match_items_with_database(inputs_items)
-
-    return JsonResponse(
-        {
-            "items": matched_items,
-            "message": "Item comparison successful.",
-        },
-        status=200,
-    )
-
 
 def product(request, product_id):
     """Exibe informações de um produto específico."""
