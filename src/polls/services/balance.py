@@ -18,7 +18,6 @@ def read_balance() -> float:
     try:
         hx = HX711(dout_pin=DOUT_PIN, pd_sck_pin=SCK_PIN)
         hx.reset()
-        hx.set_scale(1.0)
         logger.debug(f"Fixed offset used: {OFFSET}")
 
         measurements = []
