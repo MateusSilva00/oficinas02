@@ -45,7 +45,7 @@ def process_order(request) -> JsonResponse:
         JsonResponse: Resposta JSON com os itens extraídos e suas correspondências
     """
     try:
-        processor = OrderProcessorFactory.create_processor('product')
+        processor = OrderProcessorFactory.create_processor("product")
         return processor.process_order()
     except Exception as e:
         return JsonResponse(
@@ -66,7 +66,7 @@ def process_fruit_order(request) -> JsonResponse:
         JsonResponse: Resposta JSON com os itens de fruta ou erro se múltiplos tipos
     """
     try:
-        processor = OrderProcessorFactory.create_processor('fruit')
+        processor = OrderProcessorFactory.create_processor("fruit")
         return processor.process_order()
     except Exception as e:
         return JsonResponse(
@@ -91,10 +91,10 @@ def order(request, order_id):
 
 
 def gerar_qr_pix(request):
-    valor = request.GET.get('valor')
+    valor = request.GET.get("valor")
     if not valor:
-        return JsonResponse({'error': 'Valor não fornecido'}, status=400)
-    
+        return JsonResponse({"error": "Valor não fornecido"}, status=400)
+
     # Configuração do Pix
     chave_pix = "searaujor7@gmail.com"  # Substitua pela sua chave Pix válida
     nome_recebedor = "Sebastiao Araujo"
@@ -114,15 +114,15 @@ def gerar_qr_pix(request):
         f"6009{cidade_recebedor}"  # Cidade do recebedor
         f"6304"  # CRC16 será calculado abaixo
     )
-    
+
     # Função para calcular o CRC16
     def calcular_crc16(payload):
         polinomio = 0x1021
         resultado = 0xFFFF
-        for byte in payload.encode('utf-8'):
-            resultado ^= (byte << 8)
+        for byte in payload.encode("utf-8"):
+            resultado ^= byte << 8
             for _ in range(8):
-                if (resultado & 0x8000):
+                if resultado & 0x8000:
                     resultado = (resultado << 1) ^ polinomio
                 else:
                     resultado <<= 1
@@ -131,7 +131,5 @@ def gerar_qr_pix(request):
 
     # Adicionar o CRC16 ao payload
     payload += calcular_crc16(payload)
-    
-    return JsonResponse({'payload': payload})
- 
 
+    return JsonResponse({"payload": payload})

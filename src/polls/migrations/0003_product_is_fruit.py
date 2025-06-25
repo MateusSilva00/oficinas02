@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('polls', '0002_product_image_path'),
+        ("polls", "0002_product_image_path"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='product',
-            name='is_fruit',
+            model_name="product",
+            name="is_fruit",
             field=models.BooleanField(default=False),
         ),
     ]

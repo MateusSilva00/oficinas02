@@ -12,6 +12,7 @@ EXAMPLE_IMAGE_PROCESS_RESPONSE = """
 - [3] [3] 
 """
 
+
 def encode_image(image):
     if isinstance(image, str):
         logger.debug(f"Encoding local image: {image}")
@@ -156,13 +157,8 @@ def match_items_with_database(items_object: Dict[int, int]) -> List[dict]:
     return matched_items
 
 
-def gerar_payload_pix(chave, nome, cidade, valor, txid='***'):
-    from py_pix import Pix
-    pix = Pix(
-        chave=chave,
-        nome=nome,
-        cidade=cidade,
-        valor=valor,
-        txid=txid
-    )
+def gerar_payload_pix(chave, nome, cidade, valor, txid="***"):
+    from pypix import Pix
+
+    pix = Pix(chave=chave, nome=nome, cidade=cidade, valor=valor, txid=txid)
     return pix.payload()
