@@ -1,7 +1,5 @@
+import platform
 import time
-
-import RPi.GPIO as GPIO
-from hx711 import HX711
 
 from logger import logger
 
@@ -14,6 +12,13 @@ def read_balance() -> float:
     """
     Performs 10 measurements and returns the average value, using a fixed offset.
     """
+    if platform.machine() != "armv7l":
+        logger.error("This function is only supported on Raspberry Pi devices.")
+        return 0.0
+
+    import RPi.GPIO as GPIO
+    from hx711 import HX711
+
     GPIO.setmode(GPIO.BCM)
     try:
         hx = HX711(dout_pin=DOUT_PIN, pd_sck_pin=SCK_PIN)

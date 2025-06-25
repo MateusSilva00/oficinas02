@@ -2,12 +2,10 @@ import os
 
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from polls.models import Order, Product
 from polls.services.order_processor import OrderProcessorFactory
-from utils import match_items_with_database
 
 
 def index(request):
