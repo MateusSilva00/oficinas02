@@ -145,7 +145,7 @@ class OrderProcessor:
         for item in items:
             if item.get("avg_weight"):
                 total_weight += item["avg_weight"]
-
+        return total_weight
 
 class OrderProcessorFactory:
     """Factory para criar processadores com estratégias específicas."""

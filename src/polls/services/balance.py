@@ -18,14 +18,12 @@ def read_balance() -> float:
     try:
         hx = HX711(dout_pin=DOUT_PIN, pd_sck_pin=SCK_PIN)
         hx.reset()
-
-        hx.set_offset(OFFSET)
         hx.set_scale(1.0)
         logger.debug(f"Fixed offset used: {OFFSET}")
 
         measurements = []
         for i in range(10):
-            measured_weight = hx.get_weight_mean(10)
+            measured_weight = hx.get_weight_mean(10) - OFFSET   
             if measured_weight:
                 logger.debug(f"Measurement {i + 1}: {measured_weight:.2f}g")
                 measurements.append(measured_weight)
