@@ -17,7 +17,7 @@ def read_balance() -> float:
     GPIO.setmode(GPIO.BCM)
     try:
         hx = HX711(dout_pin=DOUT_PIN, pd_sck_pin=SCK_PIN)
-        hx.reset()
+        hx.set_debug_mode(True)
         logger.debug(f"Fixed offset used: {OFFSET}")
 
         measurements = []
