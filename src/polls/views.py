@@ -6,12 +6,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from polls.models import Order, Product
-from polls.services.pycamera import image_capture
-from utils import (
-    extract_items_from_images,
-    gerar_payload_pix,
-    match_items_with_database,
-)
+from polls.services.order_processor import OrderProcessorFactory
+from utils import match_items_with_database
 
 
 def index(request):
@@ -40,7 +36,7 @@ def checkout(request):
 @require_POST
 def process_order(request) -> JsonResponse:
     """
-    Processa imagens enviadas pelo usuário, extrai itens e compara com o banco de dados.
+    Processa imagens de produtos gerais enviadas pelo usuário.
 
     Args:
         request: Requisição HTTP com as imagens
@@ -48,38 +44,15 @@ def process_order(request) -> JsonResponse:
     Returns:
         JsonResponse: Resposta JSON com os itens extraídos e suas correspondências
     """
-
-    # Produção
-    # image_front_view = image_capture(frontal=True)
-    image_top_view = image_capture()
-
-    # Desenvolvimento
-    # PATH TO IMAGE = src/polls/static/imgs/orders/IMG-20250503-WA0044.jpg
-    # image_top_view = os.path.join(
-    #     os.path.dirname(__file__), "static/imgs/orders/IMG-20250503-WA0044.jpg"
-    # )
-
-    if not image_top_view:
-        return HttpResponse("Please upload images.")
-
-    matched_items = extract_items_from_images(image_top_view)
-
-    if not matched_items:
+    try:
+        processor = OrderProcessorFactory.create_processor('product')
+        return processor.process_order()
+    except Exception as e:
         return JsonResponse(
-            {
-                "items": [],
-                "message": "No items found in the images.",
-            },
-            status=400,
+            {"error": f"Erro interno no processamento: {str(e)}"},
+            status=500,
         )
 
-    return JsonResponse(
-        {
-            "matched_items": matched_items,
-            "message": "Image processing successful.",
-        },
-        status=200,
-    )
 
 @require_POST
 def process_fruit_order(request) -> JsonResponse:
@@ -92,68 +65,14 @@ def process_fruit_order(request) -> JsonResponse:
     Returns:
         JsonResponse: Resposta JSON com os itens de fruta ou erro se múltiplos tipos
     """
-    # Produção
-    # image_top_view = image_capture()
-
-    # Desenvolvimento
-    # PATH TO IMAGE = src/polls/static/imgs/orders/IMG-20250503-WA0044.jpg
-    image_top_view = os.path.join(
-        os.path.dirname(__file__), "static/imgs/orders/fruits_order_type_correct_apple.jpeg"
-    )
-
-
-    if not image_top_view:
+    try:
+        processor = OrderProcessorFactory.create_processor('fruit')
+        return processor.process_order()
+    except Exception as e:
         return JsonResponse(
-            {
-                "error": "Por favor, tire uma foto das frutas.",
-            },
-            status=400,
+            {"error": f"Erro interno no processamento: {str(e)}"},
+            status=500,
         )
-
-    matched_items = extract_items_from_images(image_top_view)
-
-    if not matched_items:
-        return JsonResponse(
-            {
-                "error": "Nenhuma fruta foi encontrada na imagem.",
-            },
-            status=400,
-        )
-
-    fruit_items = []
-    for item in matched_items:
-        if item.get("is_fruit", False):
-            fruit_items.append(item)
-
-    
-    if not fruit_items:
-        return JsonResponse(
-            {
-                "error": "Nenhuma fruta foi detectada na imagem. Por favor, use o botão 'Inserir Produtos' para outros itens.",
-            },
-            status=400,
-        )
-
-    # Verificar se há apenas um tipo de fruta
-    unique_fruit_names = set(item['name'] for item in fruit_items)
-    
-    if len(unique_fruit_names) > 1:
-        fruit_list = ", ".join(unique_fruit_names)
-        return JsonResponse(
-            {
-                "error": f"Detectados múltiplos tipos de frutas: {fruit_list}. Por favor, coloque apenas um tipo de fruta por vez.",
-            },
-            status=400,
-        )
-
-    return JsonResponse(
-        {
-            "matched_items": fruit_items,
-            "message": "Processamento de frutas realizado com sucesso.",
-        },
-        status=200,
-    )
-
 
 
 def product(request, product_id):
@@ -180,7 +99,6 @@ def gerar_qr_pix(request):
     chave_pix = "searaujor7@gmail.com"  # Substitua pela sua chave Pix válida
     nome_recebedor = "Sebastiao Araujo"
     cidade_recebedor = "Curitiba"
-    descricao = "Pagamento"
 
     # Estrutura do payload Pix
     payload = (
@@ -215,4 +133,5 @@ def gerar_qr_pix(request):
     payload += calcular_crc16(payload)
     
     return JsonResponse({'payload': payload})
+ 
 
