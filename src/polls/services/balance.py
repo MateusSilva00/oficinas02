@@ -27,7 +27,7 @@ def read_balance() -> float:
 
         measurements = []
         for i in range(10):
-            measured_weight = hx.get_weight_mean(10) - OFFSET   
+            measured_weight = hx.get_weight_mean(10) - OFFSET
             if measured_weight:
                 logger.debug(f"Measurement {i + 1}: {measured_weight:.2f}g")
                 measurements.append(measured_weight)

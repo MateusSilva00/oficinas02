@@ -984,37 +984,37 @@
             qrCodeSection.style.display = 'block';
             qrCodeContainer.innerHTML = '';
 
-            fetch('/polls/gerar_qr_pix/?valor=' + totalPrice.toFixed(2))
-                .then(response => {
-                    console.log('Response status:', response.status);
-                    if (!response.ok) {
-                        throw new Error('Erro ao acessar o endpoint. Verifique o backend.');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Payload recebido:', data);
-                    const payload = data.payload;
-                    if (!payload) {
-                        throw new Error('Payload vazio recebido do backend.');
-                    }
-                    new QRCode(qrCodeContainer, {
-                        text: payload,
-                        width: 256,
-                        height: 256,
-                        colorDark: "#000000",
-                        colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.L
-                    });
-                })
-                .catch(err => {
-                    console.error('Erro:', err);
-                    showNotification('Erro ao gerar QR Code. Tente novamente mais tarde.', 'error');
-                });
-
+            // Mostrar notificação de carregamento
+            showNotification('Gerando QR Code para pagamento...', 'info', 'Processando');
+            
+            // Obter o QR code como imagem diretamente
+            const imgQrCode = document.createElement('img');
+            imgQrCode.alt = 'QR Code PIX';
+            
+            // Adicionar timestamp para evitar cache
+            const timestamp = new Date().getTime();
+            imgQrCode.src = `/polls/generate_pix/?value=${totalPrice.toFixed(2)}&t=${timestamp}`;
+            
+            imgQrCode.style.width = '100%';
+            imgQrCode.style.maxWidth = '256px';
+            imgQrCode.style.margin = '0 auto';
+            imgQrCode.style.display = 'block';
+            
+            imgQrCode.onerror = function() {
+                showNotification('Erro ao gerar QR Code. Tente novamente mais tarde.', 'error');
+                qrCodeContainer.innerHTML = '<p style="color: #e74c3c;">Erro ao carregar QR Code</p>';
+            };
+            
+            imgQrCode.onload = function() {
+                showNotification('QR Code gerado com sucesso!', 'success');
+            };
+            
+            qrCodeContainer.appendChild(imgQrCode);
             document.getElementById('payment-total-amount').textContent = totalPrice.toFixed(2).replace('.', ',');
             qrCodeSection.scrollIntoView({ behavior: 'smooth' });
         });
     </script>
+</body>
+</html>
 </body>
 </html>

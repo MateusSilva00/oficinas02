@@ -1,8 +1,15 @@
 import os
 
-from django.http import Http404, HttpResponse, JsonResponse
+from django.conf import settings
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
+from pypix.core.styles.border_styles import BorderStyle
+from pypix.core.styles.frame_styles import FrameStyle
+from pypix.core.styles.line_styles import LineStyle
+from pypix.core.styles.marker_styles import MarkerStyle
+from pypix.core.styles.qr_styler import GradientMode
+from pypix.pix import Pix
 
 from polls.models import Order, Product
 from polls.services.order_processor import OrderProcessorFactory
@@ -88,46 +95,48 @@ def order(request, order_id):
     return HttpResponse(output)
 
 
-def gerar_qr_pix(request):
-    valor = request.GET.get("valor")
-    if not valor:
+def generate_pix(request):
+    value = request.GET.get("value")
+    if not value:
         return JsonResponse({"error": "Valor não fornecido"}, status=400)
 
-    # Configuração do Pix
-    chave_pix = "searaujor7@gmail.com"  # Substitua pela sua chave Pix válida
-    nome_recebedor = "Sebastiao Araujo"
-    cidade_recebedor = "Curitiba"
+    # Criar diretório para QR codes se não existir
+    qr_dir = os.path.join(settings.BASE_DIR, "polls", "static", "polls", "qrcodes")
+    os.makedirs(qr_dir, exist_ok=True)
 
-    # Estrutura do payload Pix
-    payload = (
-        f"000201"  # Identificador do formato
-        f"010211"  # Identificador do método de pagamento (Pix)
-        f"26580014BR.GOV.BCB.PIX"  # Domínio do Pix
-        f"0136{chave_pix}"  # Chave Pix
-        f"52040000"  # Código do país
-        f"5303986"  # Moeda (986 = BRL)
-        f"5405{valor}"  # Valor da transação
-        f"5802BR"  # País
-        f"5908{nome_recebedor}"  # Nome do recebedor
-        f"6009{cidade_recebedor}"  # Cidade do recebedor
-        f"6304"  # CRC16 será calculado abaixo
+    # Definir o caminho completo para salvar a imagem
+    output_path = os.path.join(qr_dir, "pix_qrcode.png")
+    print(f"Gerando QR Code PIX com valor: {value} em {output_path}")
+
+    pix = Pix()
+    pix.set_name_receiver("Mateus Silva")
+    pix.set_city_receiver("Curitiba")
+    pix.set_key("8f700b89-48e6-43db-8ef3-135c66948233")
+    pix.set_description("Pagamento de produtos")
+    pix.set_amount(float(value))
+
+    br_code = pix.get_br_code()
+
+    pix.save_qrcode(
+        data=br_code,
+        output=output_path,
+        box_size=7,
+        border=1,
+        marker_style=MarkerStyle.QUARTER_CIRCLE,
+        border_style=BorderStyle.ROUNDED,
+        line_style=LineStyle.ROUNDED,
+        gradient_color="purple",
+        gradient_mode=GradientMode.NORMAL,
+        frame_style=FrameStyle.SCAN_ME_PURPLE,
+        style_mode="Full",
     )
+    print(f"QR Code gerado com sucesso em: {output_path}")
 
-    # Função para calcular o CRC16
-    def calcular_crc16(payload):
-        polinomio = 0x1021
-        resultado = 0xFFFF
-        for byte in payload.encode("utf-8"):
-            resultado ^= byte << 8
-            for _ in range(8):
-                if resultado & 0x8000:
-                    resultado = (resultado << 1) ^ polinomio
-                else:
-                    resultado <<= 1
-            resultado &= 0xFFFF
-        return f"{resultado:04X}"
-
-    # Adicionar o CRC16 ao payload
-    payload += calcular_crc16(payload)
-
-    return JsonResponse({"payload": payload})
+    # Retornar a imagem como resposta
+    if os.path.exists(output_path):
+        return FileResponse(open(output_path, "rb"), content_type="image/png")
+    else:
+        return JsonResponse(
+            {"error": f"Falha ao criar arquivo QR code: {output_path} não existe"},
+            status=500,
+        )

@@ -155,10 +155,3 @@ def match_items_with_database(items_object: Dict[int, int]) -> List[dict]:
 
     logger.debug(f"Matched items: {matched_items}")
     return matched_items
-
-
-def gerar_payload_pix(chave, nome, cidade, valor, txid="***"):
-    from pypix import Pix
-
-    pix = Pix(chave=chave, nome=nome, cidade=cidade, valor=valor, txid=txid)
-    return pix.payload()

@@ -126,14 +126,14 @@ class OrderProcessor:
                 "matched_items": validation_result["filtered_items"],
                 "message": self.strategy.get_success_message(),
                 "total_weight": total_weight,
-                'balance_value': read_balance(),
+                "balance_value": read_balance(),
             },
             status=200,
         )
 
         logger.debug(f"Output data for order processing: {output_data.content}")
 
-        return output_data 
+        return output_data
 
     def _capture_image(self):
         """Captura imagem da câmera ou retorna imagem de desenvolvimento."""
@@ -155,6 +155,7 @@ class OrderProcessor:
             if item.get("avg_weight"):
                 total_weight += item["avg_weight"]
         return total_weight
+
 
 class OrderProcessorFactory:
     """Factory para criar processadores com estratégias específicas."""

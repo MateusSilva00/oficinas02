@@ -12,5 +12,5 @@ urlpatterns = [
     path("process_fruits/", views.process_fruit_order, name="process_fruits"),
     path("product/<int:product_id>/", views.product, name="product"),
     path("order/<int:order_id>/", views.order, name="order"),
-    path("gerar_qr_pix/", views.gerar_qr_pix, name="gerar_qr_pix"),
+    path("generate_pix/", views.generate_pix, name="generate_pix"),
 ]
