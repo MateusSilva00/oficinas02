@@ -3,8 +3,8 @@ from typing import Any, Dict, List
 
 from django.http import JsonResponse
 
+from logger import logger
 from polls.services.pycamera import image_capture
-from src.logger import logger
 from src.polls.services.balance import read_balance
 from utils import extract_items_from_images
 
