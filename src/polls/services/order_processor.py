@@ -4,6 +4,7 @@ from typing import Any, Dict, List
 from django.http import JsonResponse
 
 from polls.services.pycamera import image_capture
+from src.logger import logger
 from src.polls.services.balance import read_balance
 from utils import extract_items_from_images
 
@@ -110,17 +111,20 @@ class OrderProcessor:
             )
 
         total_weight = self._get_total_weight(validation_result["filtered_items"])
-        balance_value = read_balance()
 
-        return JsonResponse(
+        output_data = JsonResponse(
             {
                 "matched_items": validation_result["filtered_items"],
                 "message": self.strategy.get_success_message(),
                 "total_weight": total_weight,
-                'balance_value': balance_value,
+                'balance_value': read_balance(),
             },
             status=200,
         )
+
+        logger.debug(f"Output data for order processing: {output_data.content}")
+
+        return output_data 
 
     def _capture_image(self):
         """Captura imagem da câmera ou retorna imagem de desenvolvimento."""
