@@ -1,9 +1,9 @@
 import platform
 import time
+import json
 
 from logger import logger
 
-OFFSET = 295700
 DOUT_PIN = 5
 SCK_PIN = 6
 
@@ -16,24 +16,31 @@ def read_balance() -> float:
         logger.error("This function is only supported on Raspberry Pi devices.")
         return 0.0
 
+    with open("calibracao.json", "r") as f:
+        dados = json.load(f)
+
+    OFFSET = dados.get("offset")
+    SCALE = dados.get("scale")
+
     import RPi.GPIO as GPIO
     from hx711 import HX711
 
     GPIO.setmode(GPIO.BCM)
     try:
         hx = HX711(dout_pin=DOUT_PIN, pd_sck_pin=SCK_PIN)
-        hx.set_debug_mode(True)
+        hx.set_offset(OFFSET)
+        hx.set_scale_ratio(SCALE)
         logger.debug(f"Fixed offset used: {OFFSET}")
 
         measurements = []
         for i in range(10):
-            measured_weight = hx.get_weight_mean(10) - OFFSET
+            measured_weight = hx.get_weight_mean(10)
             if measured_weight:
                 logger.debug(f"Measurement {i + 1}: {measured_weight:.2f}g")
                 measurements.append(measured_weight)
             else:
                 logger.error(f"Error in measurement {i + 1}!")
-            time.sleep(1)
+            time.sleep(0.1)
 
         if measurements:
             average = sum(measurements) / len(measurements)
