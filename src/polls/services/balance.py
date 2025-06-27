@@ -12,7 +12,7 @@ def read_balance() -> float:
     """
     Performs 10 measurements and returns the average value, using a fixed offset.
     """
-    if platform.machine() != "armv7l":
+    if platform.machine() != "aarch64":
         logger.error("This function is only supported on Raspberry Pi devices.")
         return 0.0
 
