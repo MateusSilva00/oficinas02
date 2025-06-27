@@ -57,6 +57,5 @@ def read_balance() -> float:
     finally:
         GPIO.cleanup()
 
-
 if __name__ == "__main__":
-    pass
+    read_balance()
