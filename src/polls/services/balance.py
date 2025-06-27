@@ -28,13 +28,14 @@ def read_balance() -> float:
     GPIO.setmode(GPIO.BCM)
     try:
         hx = HX711(dout_pin=DOUT_PIN, pd_sck_pin=SCK_PIN)
-        hx.set_offset(OFFSET)
-        hx.set_scale_ratio(SCALE)
+        # hx.set_offset(OFFSET)
+        # hx.set_scale_ratio(SCALE)
         logger.debug(f"Fixed offset used: {OFFSET}")
 
         measurements = []
         for i in range(10):
-            measured_weight = hx.get_weight_mean(10)
+            
+            measured_weight = (hx.get_raw_data(10) - OFFSET) / SCALE
             if measured_weight:
                 logger.debug(f"Measurement {i + 1}: {measured_weight:.2f}g")
                 measurements.append(measured_weight)
