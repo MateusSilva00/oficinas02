@@ -16,7 +16,7 @@ def read_balance() -> float:
         logger.error("This function is only supported on Raspberry Pi devices.")
         return 0.0
 
-    with open("calibracao.json", "r") as f:
+    with open("src/polls/services/calibracao.json", "r") as f:
         dados = json.load(f)
 
     OFFSET = dados.get("offset")
