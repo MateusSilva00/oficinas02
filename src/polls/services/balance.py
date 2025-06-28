@@ -33,7 +33,7 @@ def read_balance() -> float:
         logger.debug(f"Fixed offset used: {OFFSET}")
 
         measurements = []
-        for i in range(10):
+        for i in range(5):
             
             measured_weight = (hx.get_raw_data(10)[0] - OFFSET) / SCALE
             if measured_weight:
