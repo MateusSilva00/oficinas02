@@ -124,19 +124,15 @@ class OrderProcessor:
         total_weight = self._get_total_weight(validation_result["filtered_items"])
         balance_value = read_balance()
 
-        # Regra de três para frutas: preço = preço_kg * peso_lido
-        total_price = None
         if isinstance(self.strategy, FruitProcessingStrategy):
-            # Considera apenas o primeiro item, pois só pode haver um tipo de fruta
             fruit_item = validation_result["filtered_items"][0]
-            try:
-                # Busca o produto correspondente pelo nome
-                product = Product.objects.get(name=fruit_item["name"])
-                price_per_kg = product.price
-                # O valor da balança é em kg
-                total_price = price_per_kg * Decimal(str(balance_value))
-            except Product.DoesNotExist:
-                total_price = None
+            
+            fruit_price = float(fruit_item.get("price"))
+            fruit_avg = fruit_item.get("avg_weight", 0)
+            final_price = (fruit_price * balance_value) / fruit_avg
+
+            validation_result["filtered_items"][0]["price"] = final_price
+
 
         output_data = {
             "matched_items": validation_result["filtered_items"],
@@ -145,9 +141,6 @@ class OrderProcessor:
             "balance_value": balance_value,
         }
         
-        if total_price is not None:
-            output_data["total_price"] = float(round(total_price, 2))
-
         response = JsonResponse(output_data, status=200)
         logger.debug(f"Output data for order processing: {response.content}")
 
