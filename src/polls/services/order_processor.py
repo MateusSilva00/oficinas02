@@ -126,12 +126,13 @@ class OrderProcessor:
 
         if isinstance(self.strategy, FruitProcessingStrategy):
             fruit_item = validation_result["filtered_items"][0]
-            
+            fruit_quantity = fruit_item.get("quantity", 1)
+
             fruit_price = float(fruit_item.get("price"))
             fruit_avg = float(fruit_item.get("avg_weight", 0))
             final_price = (fruit_price * balance_value) / fruit_avg
 
-            validation_result["filtered_items"][0]["price"] = final_price
+            validation_result["filtered_items"][0]["price"] = round(final_price / fruit_quantity, 2)
 
 
         output_data = {
