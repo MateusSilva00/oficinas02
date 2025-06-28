@@ -128,7 +128,7 @@ class OrderProcessor:
             fruit_item = validation_result["filtered_items"][0]
             
             fruit_price = float(fruit_item.get("price"))
-            fruit_avg = fruit_item.get("avg_weight", 0)
+            fruit_avg = float(fruit_item.get("avg_weight", 0))
             final_price = (fruit_price * balance_value) / fruit_avg
 
             validation_result["filtered_items"][0]["price"] = final_price
