@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from decimal import Decimal
 from typing import Any, Dict, List
 
 from django.http import JsonResponse
@@ -133,7 +134,7 @@ class OrderProcessor:
                 product = Product.objects.get(name=fruit_item["name"])
                 price_per_kg = product.price
                 # O valor da balança é em kg
-                total_price = price_per_kg * balance_value
+                total_price = price_per_kg * Decimal(str(balance_value))
             except Product.DoesNotExist:
                 total_price = None
 
@@ -145,7 +146,7 @@ class OrderProcessor:
         }
         
         if total_price is not None:
-            output_data["total_price"] = round(total_price, 2)
+            output_data["total_price"] = float(round(total_price, 2))
 
         response = JsonResponse(output_data, status=200)
         logger.debug(f"Output data for order processing: {response.content}")
