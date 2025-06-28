@@ -4,6 +4,7 @@ from typing import Any, Dict, List
 from django.http import JsonResponse
 
 from logger import logger
+from polls.models import Product  # Adicione esta importação
 from polls.services.balance import read_balance
 from polls.services.pycamera import image_capture
 from utils import extract_items_from_images
@@ -120,20 +121,36 @@ class OrderProcessor:
             )
 
         total_weight = self._get_total_weight(validation_result["filtered_items"])
+        balance_value = read_balance()
 
-        output_data = JsonResponse(
-            {
-                "matched_items": validation_result["filtered_items"],
-                "message": self.strategy.get_success_message(),
-                "total_weight": total_weight,
-                "balance_value": read_balance(),
-            },
-            status=200,
-        )
+        # Regra de três para frutas: preço = preço_kg * peso_lido
+        total_price = None
+        if isinstance(self.strategy, FruitProcessingStrategy):
+            # Considera apenas o primeiro item, pois só pode haver um tipo de fruta
+            fruit_item = validation_result["filtered_items"][0]
+            try:
+                # Busca o produto correspondente pelo nome
+                product = Product.objects.get(name=fruit_item["name"])
+                price_per_kg = product.price
+                # O valor da balança é em kg
+                total_price = price_per_kg * balance_value
+            except Product.DoesNotExist:
+                total_price = None
 
-        logger.debug(f"Output data for order processing: {output_data.content}")
+        output_data = {
+            "matched_items": validation_result["filtered_items"],
+            "message": self.strategy.get_success_message(),
+            "total_weight": total_weight,
+            "balance_value": balance_value,
+        }
+        
+        if total_price is not None:
+            output_data["total_price"] = round(total_price, 2)
 
-        return output_data
+        response = JsonResponse(output_data, status=200)
+        logger.debug(f"Output data for order processing: {response.content}")
+
+        return response
 
     def _capture_image(self):
         """Captura imagem da câmera ou retorna imagem de desenvolvimento."""
