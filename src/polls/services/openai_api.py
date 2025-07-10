@@ -1,12 +1,14 @@
+import os
 from time import perf_counter
 
+from dotenv import load_dotenv
 from openai import OpenAI
 
 from logger import logger
 
-client = OpenAI(
-    api_key="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"
-)
+load_dotenv()
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 def generate_image_description(base64_top_view, input_text, base64_front_view=None):

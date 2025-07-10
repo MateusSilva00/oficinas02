@@ -6,7 +6,7 @@ authors = [
     {name = "MateusSilva00",email = "mateus.2020@alunos.utfpr.edu.br"}
 ]
 readme = "README.md"
-requires-python = ">=3.11,<4.0"
+requires-python = ">=3.12,<4.0"
 dependencies = [
     "django (>=5.2,<6.0)",
     "openai (>=1.75.0,<2.0.0)",
@@ -18,6 +18,7 @@ dependencies = [
     "hx711 (>=1.1.2.3,<2.0.0.0)",
     "rpi-gpio (>=0.7.1,<0.8.0)",
     "pypix @ git+https://github.com/cleitonleonel/pypix.git",
+    "python-dotenv (>=1.1.1,<2.0.0)",
 ]
 
 [tool.poetry]

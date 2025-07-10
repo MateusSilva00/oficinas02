@@ -15,7 +15,7 @@ def read_balance() -> float:
     if platform.machine() != "aarch64":
         logger.error("This function is only supported on Raspberry Pi devices.")
         return 0.0
-    
+
     with open("calibracao.json", "r") as f:
         dados = json.load(f)
 
@@ -34,7 +34,6 @@ def read_balance() -> float:
 
         measurements = []
         for i in range(5):
-            
             measured_weight = (hx.get_raw_data(10)[0] - OFFSET) / SCALE
             if measured_weight:
                 logger.debug(f"Measurement {i + 1}: {measured_weight:.2f}g")
@@ -57,6 +56,7 @@ def read_balance() -> float:
 
     finally:
         GPIO.cleanup()
+
 
 if __name__ == "__main__":
     read_balance()

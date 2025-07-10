@@ -4,12 +4,12 @@ from django.conf import settings
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
-#from pypix.core.styles.border_styles import BorderStyle
-#from pypix.core.styles.frame_styles import FrameStyle
-#from pypix.core.styles.line_styles import LineStyle
-#from pypix.core.styles.marker_styles import MarkerStyle
-#from pypix.core.styles.qr_styler import GradientMode
-#from pypix.pix import Pix
+from pypix.core.styles.border_styles import BorderStyle
+from pypix.core.styles.frame_styles import FrameStyle
+from pypix.core.styles.line_styles import LineStyle
+from pypix.core.styles.marker_styles import MarkerStyle
+from pypix.core.styles.qr_styler import GradientMode
+from pypix.pix import Pix
 
 from polls.models import Order, Product
 from polls.services.order_processor import OrderProcessorFactory
@@ -96,7 +96,6 @@ def order(request, order_id):
 
 
 def generate_pix(request):
-    return 0
     value = request.GET.get("value")
     if not value:
         return JsonResponse({"error": "Valor não fornecido"}, status=400)

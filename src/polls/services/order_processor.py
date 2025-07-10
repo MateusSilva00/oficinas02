@@ -1,11 +1,9 @@
 from abc import ABC, abstractmethod
-from decimal import Decimal
 from typing import Any, Dict, List
 
 from django.http import JsonResponse
 
 from logger import logger
-from polls.models import Product  # Adicione esta importação
 from polls.services.balance import read_balance
 from polls.services.pycamera import image_capture
 from utils import extract_items_from_images
@@ -132,8 +130,9 @@ class OrderProcessor:
             fruit_avg = float(fruit_item.get("avg_weight", 0))
             final_price = (fruit_price * balance_value) / fruit_avg
 
-            validation_result["filtered_items"][0]["price"] = round(final_price / fruit_quantity, 2)
-
+            validation_result["filtered_items"][0]["price"] = round(
+                final_price / fruit_quantity, 2
+            )
 
         output_data = {
             "matched_items": validation_result["filtered_items"],
@@ -141,7 +140,7 @@ class OrderProcessor:
             "total_weight": total_weight,
             "balance_value": balance_value,
         }
-        
+
         response = JsonResponse(output_data, status=200)
         logger.debug(f"Output data for order processing: {response.content}")
 
