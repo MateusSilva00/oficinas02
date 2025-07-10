@@ -1,5 +1,9 @@
 # CheckAI - AI-Powered Product Recognition System
 
+<div align="center">
+  <img src="imgs/logo.png" alt="CheckAI Logo" width="300"/>
+</div>
+
 ## Team Members
 - Mateus Silva - RA: 2245310
 - Sebastião Neto - RA: 2329212
